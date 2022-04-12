@@ -47,6 +47,7 @@ namespace Assets.Scripts.Shared
         public abstract void UpdateInput(string newInput);
 
         protected abstract void ChangeValueEvent(string newInput);
+        protected abstract void SelectEvent(string newInput);
         protected abstract void UpdateHint(string hint);
     }
 

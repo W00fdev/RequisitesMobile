@@ -18,6 +18,11 @@ namespace Assets.Scripts.Shared
             throw new System.NotImplementedException();
         }
 
+        protected override void SelectEvent(string newInput)
+        {
+            throw new System.NotImplementedException();
+        }
+
         protected override void UpdateHint(string hint)
         {
             throw new System.NotImplementedException();

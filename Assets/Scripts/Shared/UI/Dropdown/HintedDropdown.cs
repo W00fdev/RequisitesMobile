@@ -37,8 +37,11 @@ namespace Assets.Scripts.Shared
 
         public virtual void Show() => Dropdown.Show();
 
+        public void Refresh() => Dropdown.RefreshShownValue();
 
-        public abstract void UpdateDropdown(string newInput);
-        protected abstract void ChooseValueEvent(TMP_Dropdown dropdown);
+
+        // Returns a new first option.
+        public abstract string UpdateDropdown(string newInput);
+        protected abstract void ChooseValueEvent(int optionIndex);
     }
 }
