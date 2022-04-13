@@ -9,8 +9,6 @@ namespace Assets.Scripts.Shared
 {
     public abstract class HintedInput : MonoBehaviour
     {
-        public bool DebugOutput;
-
         [SerializeField] protected TMP_InputField InputField;
         [SerializeField] protected int CharacterLimit;
 
@@ -18,24 +16,17 @@ namespace Assets.Scripts.Shared
         public TMP_Text HintText;
         public bool Initialized = false;
 
-        protected DataInputRequisites Data;
-        protected string CurrentInput = "";
+        protected ParserResponse DropdownResponse;
+        protected string PreviousInput;
 
-        public void Initialize(DataInputRequisites data)
+        public void Initialize()
         {
-            Data = data;
             Initialized = true;
             SwitchState(true);
-
-            if (DebugOutput)
-                Data.DataIfns.Debug();
-
-            Dropdown.Initialize(data);
-            Dropdown.Show();
         }
         public virtual void SwitchState(bool enabled)
         {
-            InputField.text = "";
+            //InputField.text = "";
             InputField.interactable = enabled;
 
             if (enabled)
@@ -44,11 +35,20 @@ namespace Assets.Scripts.Shared
                 InputField.DeactivateInputField();
         }
 
+        public void Select()
+        {
+            InputField.Select();
+
+            InputField.selectionAnchorPosition = 0;
+            InputField.selectionFocusPosition = InputField.text.Length;
+            InputField.caretPosition = InputField.text.Length;
+        }
+
         public abstract void UpdateInput(string newInput);
 
         protected abstract void ChangeValueEvent(string newInput);
         protected abstract void SelectEvent(string newInput);
-        protected abstract void UpdateHint(string hint);
+        protected abstract void UpdateHint();
     }
 
 }

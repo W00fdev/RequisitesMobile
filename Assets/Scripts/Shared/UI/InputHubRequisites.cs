@@ -24,8 +24,8 @@ namespace Assets.Scripts.Shared {
             Data = data;
             OnIfnsComplete = ifnsComplete;
 
-            HintedInputIfns.Initialize(Data);
-            //HintedDropdownOktmmf.Initialize(data);
+            HintedInputIfns.Initialize();
+            //HintedDropdownOktmmf.Initialize();
 
             HintedDropdownIfns.Initialize(Data);
             //HintedDropdownOktmmf.Initialize(Data);

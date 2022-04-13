@@ -24,6 +24,8 @@ namespace Assets.Scripts.Shared
 
             SwitchState(true);
             UpdateDropdown("");
+
+            Dropdown.Hide();
         }
 
         public virtual void SwitchState(bool enabled)
@@ -35,13 +37,15 @@ namespace Assets.Scripts.Shared
                 Dropdown.Hide();
         }
 
-        public virtual void Show() => Dropdown.Show();
-
-        public void Refresh() => Dropdown.RefreshShownValue();
-
+        public virtual void Show()
+        {
+            Debug.Log("OMG SHOOOOWED");
+            Dropdown.Show();
+            Dropdown.RefreshShownValue();
+        }
 
         // Returns a new first option.
-        public abstract string UpdateDropdown(string newInput);
-        protected abstract void ChooseValueEvent(int optionIndex);
+        public abstract ParserResponse UpdateDropdown(string newInput);
+        public abstract void ChooseValueEvent(int optionIndex);
     }
 }

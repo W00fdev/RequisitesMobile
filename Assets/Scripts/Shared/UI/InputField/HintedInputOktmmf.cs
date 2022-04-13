@@ -23,7 +23,7 @@ namespace Assets.Scripts.Shared
             throw new System.NotImplementedException();
         }
 
-        protected override void UpdateHint(string hint)
+        protected override void UpdateHint()
         {
             throw new System.NotImplementedException();
         }

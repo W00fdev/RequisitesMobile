@@ -7,36 +7,37 @@ using Assets.Scripts.Core;
 using TMPro;
 using UnityEngine.Events;
 
+using static Assets.Scripts.Core.ParserResponse.ResponseType;
+
 namespace Assets.Scripts.Shared
 {
     public class HintedDropdownIfns : HintedDropdown
     {
-        private string _currentIfns;
 
-        private void Start()
+        private void Awake()
         {
             Dropdown ??= GetComponent<TMP_Dropdown>();
             //Dropdown.onValueChanged.RemoveAllListeners();
             Dropdown.onValueChanged.AddListener(ChooseValueEvent);
 
             Label.enabled = false;
-            SwitchState(true);
+            SwitchState(false);
         }
 
-        public override string UpdateDropdown(string newInput)
+        public override ParserResponse UpdateDropdown(string newInput)
         {
             if (Initialized == false)
-                return "";
+                return new ParserResponse(EMPTY);
 
             if (Data.DataIfns == null)
             {
                 Debug.LogError("Data ifns is null");
-                return "";
+                return new ParserResponse(UNKNOWNERROR);
             }
 
             Dropdown.ClearOptions();
-
-            Debug.Log("Update drop: " + newInput);
+            //Dropdown.Hide();
+            Dropdown.AddOptions(new List<string>(){ "" });
 
             var data = Data.DataIfns.Data;
             var options = new List<string>();
@@ -69,12 +70,6 @@ namespace Assets.Scripts.Shared
                     if (newInput.Length > 1 && firstKey[1] != newInput[1])
                         continue;
 
-                    if (newInput.Length > 2 && firstKey[2] != newInput[2])
-                        continue;
-
-                    if (newInput.Length > 3 && firstKey[3] != newInput[3])
-                        continue;
-
                     string part1 = "";
                     if (newInput.Length < 2)
                     {
@@ -83,8 +78,8 @@ namespace Assets.Scripts.Shared
                         options.Add(part1 + option.RepublicName);
                         continue;
                     }
-                    
-                    foreach(var ifnsData in option.IfnsData)
+
+                    foreach (var ifnsData in option.IfnsData)
                     {
                         if (newInput.Length > 2 && ifnsData.Key[2] != newInput[2])
                             continue;
@@ -94,25 +89,26 @@ namespace Assets.Scripts.Shared
 
                         options.Add(ifnsData.Key + " - " + ifnsData.Value);
                     }
-
-                    
                 }
-
                 Dropdown.AddOptions(options);
             }
 
             Dropdown.RefreshShownValue();
 
-            if (Dropdown.options.Count > 0)
-                return Dropdown.options[0].text;
+            if (newInput.Length == 0)
+                return new ParserResponse(EMPTY);
 
-            return "Ошибка";
+            if (Dropdown.options.Count > 1)
+                return new ParserResponse(OK, Dropdown.options[1].text);
+
+            return new ParserResponse(NOTFOUND);
         }
 
-        protected override void ChooseValueEvent(int optionIndex)
+        public override void ChooseValueEvent(int optionIndex)
         {
             string optionString = Dropdown.options[optionIndex].text;
             Input.UpdateInput(optionString);
+            Input.Select();
         }
     }
 }

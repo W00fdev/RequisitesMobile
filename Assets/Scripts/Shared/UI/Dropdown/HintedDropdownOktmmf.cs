@@ -8,12 +8,12 @@ namespace Assets.Scripts.Shared
 {
     public class HintedDropdownOktmmf : HintedDropdown
     {
-        public override string UpdateDropdown(string newInput)
+        public override ParserResponse UpdateDropdown(string newInput)
         {
             throw new System.NotImplementedException();
         }
 
-        protected override void ChooseValueEvent(int optionIndex)
+        public override void ChooseValueEvent(int optionIndex)
         {
             throw new System.NotImplementedException();
         }
