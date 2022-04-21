@@ -4,53 +4,77 @@ using UnityEngine;
 
 using Assets.Scripts.Core;
 using UnityEngine.Events;
+using System;
 
 namespace Assets.Scripts.Shared {
     public class InputHubRequisites : MonoBehaviour
     {
-        public HintedInput HintedInputIfns;
-        public HintedInput HintedInputOktmmf;
-
-        public HintedDropdown HintedDropdownIfns;
-        public HintedDropdown HintedDropdownOktmmf;
+        public SearchbarBase SearchBarIfns;
+        public SearchbarBase SearchBarOktmmf;
 
         [HideInInspector]
-        public UnityEvent<string> OnIfnsComplete;
+        //public UnityAction<string> SearchOktmmf;
+        public Action<string> OnIfnsSet;
+        public Action<string> OnOktmmfSet;
 
-        private DataInputRequisites Data;
-
-        public void Initialize(DataInputRequisites data, UnityEvent<string> ifnsComplete)
+        private void Start()
         {
-            Data = data;
-            OnIfnsComplete = ifnsComplete;
-
-            HintedInputIfns.Initialize();
-            //HintedDropdownOktmmf.Initialize();
-
-            HintedDropdownIfns.Initialize(Data);
-            //HintedDropdownOktmmf.Initialize(Data);
-
-            IfnsComplete(false, "");
         }
 
-        private void IfnsComplete(bool completed, string ifns)
+        public void Initialize(Action<string> onIfnsSet, Action<string> onOktmmfSet)
         {
-            if (completed)
+            OnIfnsSet = onIfnsSet;
+            OnOktmmfSet = onOktmmfSet;
+
+            SearchBarIfns.Initialize(IfnsComplete);
+        }
+
+        private void IfnsComplete(string ifns)
+        {
+            if (DataInputRequisites.DataIfns.CheckIfnsExistence(ifns))
             {
-                if (Data.DataIfns.CheckIfnsExistence(ifns))
-                    OnIfnsComplete.Invoke(ifns);
-                else
-                    Debug.LogError($"Ifns {ifns} doesn't exist");
-                // Replace to HintPopup
+                DataInputRequisites.IfnsComplete = ifns;
+                OnIfnsSet?.Invoke(ifns);
+                if (SearchBarOktmmf.Initialized == false)
+                    SearchBarOktmmf.Initialize(OktmmfComplete);
+
+                SearchBarOktmmf.SwitchState(true);
             }
             else
             {
-                // De-activate oktmmf dropdown and input
+                Debug.LogError($"Ifns {ifns} doesn't exist");
 
-                // HintedInputOktmmf.SwitchState(false);
-                // HintedDropdownOktmmf.SwitchState(false);
+                DataInputRequisites.IfnsComplete = "";
+                DataInputRequisites.OktmmfComplete = "";
+
+                SearchBarOktmmf.SwitchState(false);
+                SearchBarOktmmf.CloseSearchbar();
+                // Replace to HintPopup
             }
 
+
+            // De-activate oktmmf dropdown and input
+
+            // HintedInputOktmmf.SwitchState(false);
+            // HintedDropdownOktmmf.SwitchState(false);
+        }
+
+
+        private void OktmmfComplete(string oktmmf)
+        {
+            if (DataInputRequisites.DataOktmmf.CheckOktmmfExistence(oktmmf))
+            {
+                DataInputRequisites.OktmmfComplete = oktmmf;
+                OnOktmmfSet?.Invoke(oktmmf);
+            }
+            else
+            {
+                Debug.LogError($"Oktmmf {oktmmf} doesn't exist");
+
+                DataInputRequisites.OktmmfComplete = "";
+
+                // Replace to HintPopup
+            }
         }
     }
 }

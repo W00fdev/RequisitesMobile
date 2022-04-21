@@ -15,6 +15,12 @@ namespace Assets.Scripts.Core
         // Maybe change to Dictionary param?
         public DataOktmmf(Dictionary<string, string> data) => Data = data;
 
-        // delegate??
+        public bool CheckOktmmfExistence(string oktmmfToCheck)
+        {
+            if (oktmmfToCheck.Length != 8)
+                return false;
+
+            return Data.ContainsKey(oktmmfToCheck);
+        }
     }
 }

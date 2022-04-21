@@ -13,9 +13,31 @@ namespace Assets.Scripts.Core
         private static readonly string _siteRequsitesURI = "https://service.nalog.ru/addrno-proc.json";
 
         private static CookieContainer cookieContainer = new CookieContainer();
-        public static void Initialize()
+
+        public static void Initialize(bool debugInfo = false)
         {
-            
+            if (debugInfo)
+            {
+                string reachabilityString = "";
+
+                //Check if the device cannot reach the internet
+                if (Application.internetReachability == NetworkReachability.NotReachable)
+                {
+                    reachabilityString = "Not Reachable.";
+                }
+                //Check if the device can reach the internet via a carrier data network
+                else if (Application.internetReachability == NetworkReachability.ReachableViaCarrierDataNetwork)
+                {
+                    reachabilityString = "Reachable via carrier data network.";
+                }
+                //Check if the device can reach the internet via a LAN
+                else if (Application.internetReachability == NetworkReachability.ReachableViaLocalAreaNetwork)
+                {
+                    reachabilityString = "Reachable via Local Area Network.";
+                }
+
+                Debug.Log("Internet : " + reachabilityString);
+            }
         }
 
         public static string GetIfns()

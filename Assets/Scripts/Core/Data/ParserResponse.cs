@@ -18,7 +18,7 @@ namespace Assets.Scripts.Core
 
         public string MakeHint(string code)
         {
-            switch(Type)
+            switch (Type)
             {
                 case ResponseType.UNKNOWNERROR:
                     return $"{code} - Ошибка.";
@@ -28,6 +28,8 @@ namespace Assets.Scripts.Core
                     return "";
                 case ResponseType.OK:
                     return Response;
+                default:
+                    break;
             }
 
             return "";
