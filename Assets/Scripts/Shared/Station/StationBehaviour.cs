@@ -45,8 +45,11 @@ namespace Assets.Scripts.Shared
             }
             else
             {
-                StopCoroutine(_retryConnection);
-                _retryConnection = null;
+                if (_retryConnection != null)
+                {
+                    StopCoroutine(_retryConnection);
+                    _retryConnection = null;
+                }
             }
 
             return connectionEstablished;
