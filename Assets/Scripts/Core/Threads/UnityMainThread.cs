@@ -6,8 +6,8 @@ using UnityEngine;
 internal class UnityMainThread : MonoBehaviour
 {
     internal static UnityMainThread wkr;
-    private Queue<Action<string>> _jobs = new Queue<Action<string>>();
-    private Queue<string> _jobsParams = new Queue<string>();
+    private Queue<Action<string>> _jobs = new Queue<Action<string>>(15);
+    private Queue<string> _jobsParams = new Queue<string>(15);
 
     private void Awake()
     {

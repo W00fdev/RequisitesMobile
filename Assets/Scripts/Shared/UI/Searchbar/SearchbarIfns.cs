@@ -7,7 +7,7 @@ using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.EventSystems;
+
 using static Assets.Scripts.Core.ParserResponse.ResponseType;
 
 namespace Assets.Scripts.Shared 
@@ -24,21 +24,21 @@ namespace Assets.Scripts.Shared
             // </InputField>
 
             // <Dropdown>
-            OptionsCached = new List<TMP_Dropdown.OptionData>[5]
+            // Only for digits input
+            OptionsCachedNumerics = new List<string>[5]
                 {
-                    new List<TMP_Dropdown.OptionData>(100) { EmptyOption },
-                    new List<TMP_Dropdown.OptionData>(10) { EmptyOption },
-                    new List<TMP_Dropdown.OptionData>(55) { EmptyOption },
-                    new List<TMP_Dropdown.OptionData>(15) { EmptyOption },
-                    new List<TMP_Dropdown.OptionData>(2) { EmptyOption },
+                    new List<string>(100) { EmptyOption },
+                    new List<string>(10) { EmptyOption },
+                    new List<string>(55) { EmptyOption },
+                    new List<string>(15) { EmptyOption },
+                    new List<string>(2) { EmptyOption },
                 };
             // </Dropdown>
         }
 
-        public override void Initialize(UnityAction<string> inputCompleteAction)
+        public override void Initialize(UnityAction<string> inputCompleteAction, TouchScreenInputAndroid keyboardAndroid)
         {
-            base.Initialize(inputCompleteAction);
-            //InitializeOptionsFirst();
+            base.Initialize(inputCompleteAction, keyboardAndroid);
             // Need to select input field.
             SwitchStateDropdown(false); 
         }
@@ -53,116 +53,34 @@ namespace Assets.Scripts.Shared
             Dropdown.ClearOptions();
             Dropdown.Hide();
 
-
-            int index = newInput.Length;
-            if (newInput.Length == 0
-                ||
-                    (OptionsCached[index].Count > 1 && OptionsCached[index][FIRST].text.Length == newInput.Length
-                    && OptionsCached[index][FIRST].text == newInput)
-                )
+            if (newInput.Length == 0)
             {
-                if (OptionsCached[index].Count <= 1)
-                    throw new Exception($"{index} tier doesn't initialized.");
+                if (OptionsCachedNumerics[0].Count <= 1)
+                    throw new Exception("0 tier doesn't initialized.");
 
-                //Dropdown.AddOptions(OptionsCached[index]);
-                AddOptionsOptimized(index);
-                DropdownResponse = (newInput.Length == 0) ? new ParserResponse(EMPTY) : new ParserResponse(OK, OptionsCached[index][FIRST].text);
-                //PreviousInputDropdown = newInput;
+                AddOptionsOptimized(0);
+                DropdownResponse = new ParserResponse(EMPTY);
                 return DropdownResponse;
             }
-            OptionsCached[index].Clear();
-            OptionsCached[index].Add(EmptyOption);
 
+            // Main logic parser function call.
+            int index = newInput.Length;
+            OptionsCachedNumerics[index] = SearchbarParser.UpdateDropdownIfns(OptionsCachedNumerics[index], newInput);
+            // --------------------------------
 
-            bool foundMatch = false;
-            foreach (var option in DataInputRequisites.DataIfns.Data)
-            {
-                if (option.IfnsData.Count <= 0)
-                    continue;
-
-                OptionString.Clear();
-                OptionString.Append(option.IfnsData.First().Key.Substring(0, 2));
-
-                // Elements are sorted.
-                int highIndex = Mathf.Clamp(newInput.Length, 0, 2);
-                int checkSortedMatch = string.Compare(newInput.Substring(0, highIndex),
-                    OptionString.ToString().Substring(0, highIndex));
-
-                if (checkSortedMatch != 0)
-                {
-                    if (foundMatch == true)
-                        break;
-                    continue;
-                }
-                foundMatch = true;
-
-                if (newInput.Length == 1)
-                {
-                    OptionString.Append(" - ").Append(option.RepublicName);
-
-                    OptionsCached[1].Add(new TMP_Dropdown.OptionData(OptionString.ToString()));
-                    continue;
-                }
-
-                bool foundInnerMatch = false;
-                foreach (var ifnsData in option.IfnsData)
-                {
-                    // Elements are sorted.
-                    checkSortedMatch = string.Compare(newInput.Substring(0, newInput.Length),
-                        ifnsData.Key.Substring(0, newInput.Length));
-
-                    if (checkSortedMatch != 0)
-                    {
-                        if (foundInnerMatch == true)
-                            break;
-                        continue;
-                    }
-                    foundInnerMatch = true;
-
-                    OptionString.Clear();
-                    OptionString.Append(ifnsData.Key).Append(" - ").Append(ifnsData.Value);
-
-                    OptionsCached[newInput.Length].Add(new TMP_Dropdown.OptionData(OptionString.ToString()));
-                }
-            }
+            if (OptionsCachedNumerics[index].Count > 1)
+                DropdownResponse = new ParserResponse(OK, OptionsCachedNumerics[newInput.Length][FIRST]);
+            else
+                DropdownResponse = new ParserResponse(NOTFOUND, newInput);
 
             //Dropdown.AddOptions(OptionsCached[newInput.Length]);
             AddOptionsOptimized(newInput.Length);
-
-            if (Dropdown.options.Count > 1)
-            {
-                DropdownResponse = new ParserResponse(OK, Dropdown.options[FIRST].text);
-            }
-            else
-            {
-                DropdownResponse = new ParserResponse(NOTFOUND, newInput);
-            }
-
-            //PreviousInputDropdown = newInput;
-
             return DropdownResponse;
         }
 
         protected override void InitializeOptionsFirst()
         {
-            OptionsCached[0].Clear();
-            OptionsCached[0].Add(EmptyOption);
-
-            foreach (var option in DataInputRequisites.DataIfns.Data)
-            {
-                if (option.IfnsData.Count <= 0)
-                    continue;
-
-                OptionString.Clear();
-                OptionString.Append(option.IfnsData.First().Key.Substring(0, 2));
-                OptionString.Append(" - ").Append(option.RepublicName);
-
-                OptionsCached[0].Add(new TMP_Dropdown.OptionData(OptionString.ToString()));
-            }
-
-            if (OptionsCached[0].Count <= 1)
-                throw new Exception("Tier 1 option can't be size <= 1");
-
+            OptionsCachedNumerics[0] = SearchbarParser.InitializeFirstOptionsIfns();
             UpdateDropdown("");
         }
 
@@ -184,8 +102,8 @@ namespace Assets.Scripts.Shared
             Dropdown.options.Clear();
             for (int i = 0; i < 5; i++)
             {
-                OptionsCached[i].Clear();
-                OptionsCached[i].Add(EmptyOption);
+                OptionsCachedNumerics[i].Clear();
+                OptionsCachedNumerics[i].Add(EmptyOption);
             }
         }
 
@@ -224,12 +142,15 @@ namespace Assets.Scripts.Shared
             if (InputField.text.Length != CharacterLimit || PreviousInput.Length == CharacterLimit)
                 ShowDropdown();
 
+            SwitchStateDropdown(true);
+
             // Don't call SelectEventInputField.
             // SelectEvent linked to OnSelect(), who call the ActivateInputField()
             SelectInputField();
 
-            SwitchStateDropdown(true);
-
+            if (KeyboardAndroid != null)
+                KeyboardAndroid.ShowKeyboard(this);
+            //TouchScreenKeyboard.Open("", TouchScreenKeyboardType.DecimalPad);
         }
 
         protected override void UpdateHint()
@@ -249,3 +170,23 @@ namespace Assets.Scripts.Shared
     }
 }
 
+
+
+
+
+
+// ====================== UPDATE DROPDOWN =====================
+
+/*            if (OptionsCached[index].Count > 1 && OptionsCached[index][FIRST].Length == newInput.Length
+                    && OptionsCached[index][FIRST] == newInput)
+            {
+                if (OptionsCached[index].Count <= 1)
+                    throw new Exception($"{index} tier doesn't initialized.");
+
+                AddOptionsOptimized(index);
+                DropdownResponse = new ParserResponse(OK, OptionsCached[index][FIRST]);
+                //PreviousInputDropdown = newInput;
+                return DropdownResponse;
+            }*/
+
+// ================================================================

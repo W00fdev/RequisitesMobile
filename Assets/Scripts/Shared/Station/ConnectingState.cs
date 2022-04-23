@@ -8,8 +8,6 @@ namespace Assets.Scripts.Shared
         public const string ConnectingTrigger = "Loading";
         public const string StopTrigger = "Running";
 
-        public bool CanRecieveCheck = false;
-
         public ConnectingState(InputHubRequisites inputHubRequisites, OutputHubRequisites outputHubRequisites,
             Animator animatorUI, IStationStateSwitcher stateSwitcher)
             :base(inputHubRequisites, outputHubRequisites, animatorUI, ConnectingTrigger, StopTrigger, stateSwitcher)
@@ -17,40 +15,23 @@ namespace Assets.Scripts.Shared
             NetworkRunner.Initialize(CheckInternetConnection, HandleIfnsDataResponse,
                 OnOktmmfResponse, HandlePayeeDetailsResponse, false);
 
-            Debug.Log("Connecting state created");
+            //Debug.Log("Connecting state created");
         }
 
         public override void Start()
         {
             base.Start();
-            Debug.Log("Connecting state started");
+            InputHubRequisites.SetEnableInput(false);
         }
 
         public override void Stop()
         {
             base.Stop();
-            Debug.Log("Connecting state stopped");
         }
 
         public override void TryConnect()
         {
-            NetworkRunner.CheckInternetConnection();
-            CanRecieveCheck = true;
-        }
-
-        private void CheckInternetConnection(string responseConnection)
-        {
-            if (CanRecieveCheck == true)
-            {
-                if (responseConnection == null || responseConnection == "")
-                {
-                    Debug.Log("Google doesn't response");
-                    return;
-                }
-
-                CanRecieveCheck = false;
-                StateSwitcher.SwitchState<RunningState>();
-            }
+            base.TryConnect();
         }
 
         private void HandleIfnsDataResponse(string responseIfns)
@@ -102,8 +83,9 @@ namespace Assets.Scripts.Shared
                 return;
             }
 
-            OutputHubRequisites.UpdateHub(dataRequisites);
             StateSwitcher.SwitchState<RunningState>();
+            // Must be after stateSwitcher
+            OutputHubRequisites.UpdateHub(dataRequisites);
         }
     }
 }

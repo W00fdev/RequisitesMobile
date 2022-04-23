@@ -15,13 +15,13 @@ namespace Assets.Scripts.Shared
             Animator animatorUI, IStationStateSwitcher stateSwitcher)
             : base(inputHubRequisites, outputHubRequisites, animatorUI, RunningTrigger, StopTrigger, stateSwitcher)
         {
-            Debug.Log("Running state created");
+            //Debug.Log("Running state created");
         }
 
         public override void Start()
         {
             base.Start();
-            Debug.Log("Running state started");
+            //Debug.Log("Running state started");
 
             if (DataInputRequisites.DataIfns == null)
             {
@@ -34,23 +34,25 @@ namespace Assets.Scripts.Shared
                 }
                 else
                 {
-                    InputHubRequisites.Initialize(OnIfnsSet, OnOktmmfSet);
+                    InputHubRequisites.Initialize(OnIfnsSet, OnOktmmfSet, ClearOutputHub);
                 }
             }
 
             // enable inputhub
+            InputHubRequisites.SetEnableInput(true);
         }
 
         public override void Stop()
         {
             base.Stop();
 
-            Debug.Log("Running state stopped");
+            //Debug.Log("Running state stopped");
             // Disable inputhub
         }
 
         public override void TryConnect()
         {
+            base.TryConnect();
         }
 
         private bool HandleIfnsData()

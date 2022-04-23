@@ -11,6 +11,7 @@ namespace Assets.Scripts.Core
     {
         private static readonly string _siteBaseURI = "https://service.nalog.ru";
         private static readonly string _siteRequsitesURI = "https://service.nalog.ru/addrno-proc.json";
+        private static readonly string _googleURI = "https://www.google.com/";
 
         private static CookieContainer cookieContainer = new CookieContainer();
 
@@ -53,7 +54,7 @@ namespace Assets.Scripts.Core
 
         public static void CheckInternetConnection()
         {
-            GetRequest request = new GetRequest("https://www.google.com/search?q=%D0%B3%D1%83%D0%B3%D0%BB", _internetConnectionResponse);
+            GetRequest request = new GetRequest(_googleURI, _internetConnectionResponse);
             CookieContainer tempCookie = new CookieContainer();
 
             request.Accept = "*/*";

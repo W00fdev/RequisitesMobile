@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-
 namespace Assets.Scripts.Shared
 {
     public class StationBehaviour : MonoBehaviour, IStationStateSwitcher
@@ -31,13 +30,14 @@ namespace Assets.Scripts.Shared
             _retryConnection = null;
 
             _currentState.Start();
-            Connect();
+            _retryConnection = StartCoroutine(CheckConnection());
+            //Connect();
         }
 
         public void Connect()
         {
             _currentState.TryConnect();
-
+/*
             if (!(_currentState is ConnectingState))
             {
                 if (_retryConnection != null)
@@ -50,7 +50,7 @@ namespace Assets.Scripts.Shared
             {
                 if (_retryConnection == null)
                     _retryConnection = StartCoroutine(RetryConnection());
-            }
+            }*/
         }
 
 /*        
@@ -82,22 +82,16 @@ namespace Assets.Scripts.Shared
             }
         }
 
-        private IEnumerator RetryConnection()
+        private IEnumerator CheckConnection()
         {
-            int attempts = 0;
-            while (attempts < _maxAttempts && _currentState is ConnectingState)
+            //int attempts = 0;
+            while (/*attempts < _maxAttempts &&*/ /*_currentState is ConnectingState*/ true)
             {
-                Debug.Log($"Try connection attempt: {attempts}");
-                yield return new WaitForSeconds(_attemptDelay);
-                
-                _currentState.TryConnect();
-                attempts++;
-            }
+                if (_currentState.PacketsSent < 3)
+                    _currentState.TryConnect();
 
-            if (_currentState is ConnectingState)
-            {
-                Debug.Log("Please, check your network connection.");
-                _retryConnection = StartCoroutine(RetryConnection());
+                yield return new WaitForSeconds(_attemptDelay);
+                //attempts++;
             }
         }
     }

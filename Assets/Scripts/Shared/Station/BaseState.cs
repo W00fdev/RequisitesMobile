@@ -1,3 +1,4 @@
+﻿using Assets.Scripts.Core;
 using UnityEngine;
 
 namespace Assets.Scripts.Shared
@@ -9,12 +10,17 @@ namespace Assets.Scripts.Shared
         protected readonly Animator AnimatorUI;
         protected readonly IStationStateSwitcher StateSwitcher;
 
-        protected readonly Core.Parser ParserResponse;
+        protected readonly Parser ParserResponse;
 
         protected readonly string StartTriggerName;
         protected readonly string StopTriggerName;
 
+        protected readonly string ClearHubPopupTriggerName = "ClearPayee";
+
         protected static string IfnsSaved = "";
+        
+        public int PacketsSent = 0;
+        public bool CanRecieveCheck = false;
 
         public BaseState(InputHubRequisites inputHubRequisites, OutputHubRequisites outputHubRequisites, Animator animatorUI, 
             string startTriggerName, string stopTriggerName, IStationStateSwitcher stateSwitcher)
@@ -27,7 +33,7 @@ namespace Assets.Scripts.Shared
             StateSwitcher = stateSwitcher;
 
             // Add differences or make parserText in Connecting.
-            ParserResponse = new Core.ParserSite();
+            ParserResponse = new ParserSite();
         }
 
         public virtual void Start()
@@ -40,6 +46,42 @@ namespace Assets.Scripts.Shared
             AnimatorUI.SetTrigger(StopTriggerName);
         }
 
-        public abstract void TryConnect();
+        public virtual void TryConnect()
+        {
+            PacketsSent++;
+            NetworkRunner.CheckInternetConnection();
+            CanRecieveCheck = true;
+        }
+
+        protected virtual void ClearOutputHub()
+        {
+            OutputHubRequisites.ClearHub();
+            AnimatorUI.SetTrigger(ClearHubPopupTriggerName);
+        }
+
+        protected void CheckInternetConnection(string responseConnection)
+        {
+            if (CanRecieveCheck == true)
+            {
+                if (responseConnection == null || responseConnection == "")
+                {
+                    Debug.Log("Google doesn't response");
+
+                    if (this is RunningState)
+                        StateSwitcher.SwitchState<ConnectingState>();
+
+                    PacketsSent--;
+
+                    return;
+                }
+
+                CanRecieveCheck = false;
+
+                if (this is ConnectingState)
+                    StateSwitcher.SwitchState<RunningState>();
+
+                PacketsSent--;
+            }
+        }
     }
 }

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 using static Assets.Scripts.Core.ParserResponse.ResponseType;
 
 namespace Assets.Scripts.Shared
@@ -27,10 +28,10 @@ namespace Assets.Scripts.Shared
             // OptionsTier[0] = start
             // OptionsTier[1] = current;
             // Можно добавить с 4ой цифры
-            OptionsCached = new List<TMP_Dropdown.OptionData>[2]
+            OptionsCachedNumerics = new List<string>[2]
             {
-                new List<TMP_Dropdown.OptionData>(350) { EmptyOption },
-                new List<TMP_Dropdown.OptionData>(200) { EmptyOption },
+                new List<string>(350) { EmptyOption },
+                new List<string>(200) { EmptyOption },
             };
 
             digits = new char[CharacterLimit];
@@ -38,11 +39,10 @@ namespace Assets.Scripts.Shared
             // </Dropdown>
         }
 
-        public override void Initialize(UnityAction<string> inputCompleteAction)
+        public override void Initialize(UnityAction<string> inputCompleteAction, TouchScreenInputAndroid keyboardAndroid)
         {
-            ClearDigits();
-            base.Initialize(inputCompleteAction);
-            //InitializeOptionsFirst();
+            //ClearDigits();
+            base.Initialize(inputCompleteAction, keyboardAndroid);
             SwitchStateDropdown(false);
         }
 
@@ -54,17 +54,18 @@ namespace Assets.Scripts.Shared
                 return DropdownResponse;
 
             Dropdown.Hide();
+            Dropdown.ClearOptions();
 
             //int index = newInput.Length;
             if (newInput.Length == 0)
             {
-                if (OptionsCached[0].Count <= 1)
+                if (OptionsCachedNumerics[0].Count <= 1)
                 {
                     // InitializeOptionsFirstTier();
                     throw new Exception("Tier 0 doesn't initialized.");
                 }
 
-                Dropdown.ClearOptions();
+                
                 AddOptionsOptimized(0);
                 // Dropdown.AddOptions(OptionsCached[0]);
                 DropdownResponse = new ParserResponse(EMPTY);
@@ -75,12 +76,23 @@ namespace Assets.Scripts.Shared
 
             //OptionsTier[0].Clear();
             //OptionsTier[0].Add(EmptyOption);
-            OptionsCached[1].Clear();
-            OptionsCached[1].Add(EmptyOption);
+            OptionsCachedNumerics[1].Clear();
+            OptionsCachedNumerics[1].Add(EmptyOption);
 
             var dropdownData = Dropdown.options;
+            var tempListTmp = new List<TMP_Dropdown.OptionData>();
             if (newInput.Length < PreviousInputDropdown.Length)
-                dropdownData = OptionsCached[0];
+            {
+                tempListTmp.Add(new TMP_Dropdown.OptionData(""));
+                //tempListTmp.AddRange()
+                foreach(string optionString in OptionsCachedNumerics[0])
+                {
+                    tempListTmp.Add(new TMP_Dropdown.OptionData(optionString));
+                }
+
+                dropdownData = tempListTmp;
+
+            }
 
             bool foundMatch = false;
             foreach (var option in dropdownData)
@@ -104,12 +116,11 @@ namespace Assets.Scripts.Shared
                 foundMatch = true;
 
                 OptionString.Append(option.text.Substring(CharacterLimit).ToASCII());
-                OptionsCached[1].Add(new TMP_Dropdown.OptionData(OptionString.ToString()));
+                OptionsCachedNumerics[1].Add(OptionString.ToString());
                 //if (newInput.Length == 0)
                 //    OptionsTier[0].Add(new TMP_Dropdown.OptionData(OptionString.ToString()));
             }
 
-            Dropdown.ClearOptions();
             //Dropdown.AddOptions(OptionsCached[1]);
             AddOptionsOptimized(1);
 
@@ -135,34 +146,8 @@ namespace Assets.Scripts.Shared
                 return;
             }
 
-            OptionsCached[0].Clear();
-            OptionsCached[0].Add(EmptyOption);
             ClearDigits();
-
-            foreach (var option in DataInputRequisites.DataOktmmf.Data)
-            {
-                OptionString.Clear();
-                OptionString.Append(option.Key).Append(" - ").Append(option.Value.ToASCII());
-
-                for (int i = 0; i < CharacterLimit; i++)
-                {
-                    if (digits[i] == '-')
-                        digits[i] = OptionString[i];
-                    else if (digits[i] == '+')
-                        break;
-                    else if (digits[i] != OptionString[i])
-                    {
-                        digits[i] = '+';
-                        for(int j = i; j < CharacterLimit; j++)
-                            digits[j] = '+';
-                        break;
-                    }
-                }
-                
-
-                OptionsCached[0].Add(new TMP_Dropdown.OptionData(OptionString.ToString()));
-            }
-
+            OptionsCachedNumerics[0] = SearchbarParser.InitializeFirstOptionsOktmmf(ref digits);
             UpdateDropdown("");
         }
 
@@ -201,8 +186,8 @@ namespace Assets.Scripts.Shared
             ClearDigits();
             for (int i = 0; i < 2; i++)
             {
-                OptionsCached[i].Clear();
-                OptionsCached[i].Add(EmptyOption);
+                OptionsCachedNumerics[i].Clear();
+                OptionsCachedNumerics[i].Add(EmptyOption);
             }
         }
 
@@ -240,6 +225,11 @@ namespace Assets.Scripts.Shared
             // Don't call SelectEventInputField.
             // SelectEvent linked to OnSelect(), who call the ActivateInputField()
             SelectInputField();
+            
+            if (KeyboardAndroid != null)
+                KeyboardAndroid.ShowKeyboard(this);
+            
+            //TouchScreenKeyboard.Open("");
         }
 
         protected override void UpdateHint()

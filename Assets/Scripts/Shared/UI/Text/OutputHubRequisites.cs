@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using TMPro;
 
 using Assets.Scripts.Core;
@@ -8,6 +6,10 @@ using Assets.Scripts.Core;
 
 public class OutputHubRequisites : MonoBehaviour
 {
+    [Header("Анимация появившихся реквизитов")]
+    [SerializeField] private Animator _uiAnimator;
+    [SerializeField] private string _popupPayeeTriggerName = "Payee";
+
     // Заменить структурой.
     [Header("Ссылки на тексты")]
     public TextMeshProUGUI TextBIC;
@@ -51,5 +53,18 @@ public class OutputHubRequisites : MonoBehaviour
             TextPayeeBankName.text = "Ошибка.";
             TextPayeePayeeName.text = "Ошибка.";
         }
+
+        _uiAnimator.SetTrigger(_popupPayeeTriggerName);
+    }
+
+    public void ClearHub()
+    {
+        TextBIC.text = "";
+        TextCorrespAcc.text = "";
+        TextPayeeAcc.text = "";
+        TextPayeeInn.text = "";
+        TextPayeeKpp.text = "";
+        TextPayeeBankName.text = "";
+        TextPayeePayeeName.text = "";
     }
 }

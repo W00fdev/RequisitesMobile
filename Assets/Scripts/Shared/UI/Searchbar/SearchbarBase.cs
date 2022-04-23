@@ -7,6 +7,7 @@ using Assets.Scripts.Core;
 using System.Text;
 using UnityEngine.Events;
 using UnityEngine.UIElements;
+using System.Linq;
 
 namespace Assets.Scripts.Shared
 {
@@ -23,9 +24,22 @@ namespace Assets.Scripts.Shared
                 NeedToRefreshLayer = true;
             }
         }
+
+        public string Text
+        {
+            get
+            {
+                if (InputField != null)
+                    return InputField.text;
+
+                return "";
+            }
+        }
+
         public bool Initialized { get; set; } = false;
 
         protected UnityEvent<string> OnInputComplete = new UnityEvent<string>();
+        protected TouchScreenInputAndroid KeyboardAndroid = null;
         protected ParserResponse DropdownResponse;
         protected bool NeedToRefreshLayer = true;
         protected bool Empty = true;
@@ -39,22 +53,22 @@ namespace Assets.Scripts.Shared
         protected bool AreOptionsAdding = false;
 
 
-        public virtual void Initialize(UnityAction<string> inputCompleteAction)
+        public virtual void Initialize(UnityAction<string> inputCompleteAction, TouchScreenInputAndroid keyboardAndroid)
         {
             OnInputComplete.AddListener(inputCompleteAction);
+            KeyboardAndroid = keyboardAndroid;
             Initialized = true;
 
             SwitchState(true);
         }
 
-        public void StartSearchbar()
+        public void EnableSelect(bool enabled)
         {
-            InitializeOptionsFirst();
+            InputField.enabled = enabled;
         }
 
         public void CloseSearchbar()
         {
-            //Dropdown.options.Clear();
             ClearOptions();
             InputField.text = "";
             PreviousInputDropdown = "NOT INITIALIZED";
@@ -80,6 +94,13 @@ namespace Assets.Scripts.Shared
 
             SwitchStateInputField(enabled);
             SwitchStateDropdown(enabled);
+        }
+
+        public virtual void UpdateByKeyboard(string newText)
+        {
+            newText = string.Join("", newText.Where(s => char.IsDigit(s)));
+            InputField.text = newText;
+            
         }
 
         protected void BaseAwake()
@@ -145,6 +166,7 @@ namespace Assets.Scripts.Shared
                 }
             }
 
+            OptionCached = new List<string>(100);
             OptionString = new StringBuilder(50, 100);
             // </Dropdown>
 
@@ -194,12 +216,19 @@ namespace Assets.Scripts.Shared
         [SerializeField] protected TMP_Text Label;
 
         // Cached options and variables.
-        protected List<TMP_Dropdown.OptionData>[] OptionsCached;
+        //protected List<TMP_Dropdown.OptionData>[] OptionsCached;
+        
+        // Only for numerics inputs:
+        protected List<string>[] OptionsCachedNumerics;
+        // For all types of input
+        protected List<string> OptionCached;
+        
         protected StringBuilder OptionString;
         protected string PreviousInputDropdown;
 
         // In Dropdown elements are started from '1', because of 0's index is filled by string.Empty.
-        protected readonly TMP_Dropdown.OptionData EmptyOption = new TMP_Dropdown.OptionData("");
+        //protected readonly TMP_Dropdown.OptionData EmptyOption = new TMP_Dropdown.OptionData("");
+        protected readonly string EmptyOption = "";
         protected const int FIRST = 1;
 
         protected virtual void SwitchStateDropdown(bool enabled)
@@ -260,10 +289,10 @@ namespace Assets.Scripts.Shared
 
         protected IEnumerator AddOptionsBatched(int index)
         {
-            int optionsCount = OptionsCached[index].Count;
+            int optionsCount = OptionsCachedNumerics[index].Count;
             if (optionsCount < BatchSize)
             {
-                Dropdown.AddOptions(OptionsCached[index]);
+                Dropdown.AddOptions(OptionsCachedNumerics[index]);
                 AreOptionsAdding = false;
                 yield return null;
             }
@@ -274,7 +303,7 @@ namespace Assets.Scripts.Shared
                 for (int i = 0; i < optionsCount; i += BatchSize)
                 {
                     int range = Mathf.Min(BatchSize, optionsCount - i);
-                    Dropdown.AddOptions(OptionsCached[index].GetRange(i, range));
+                    Dropdown.AddOptions(OptionsCachedNumerics[index].GetRange(i, range));
                     if (range == optionsCount - i)
                     {
                         lastIndex = optionsCount;
@@ -286,7 +315,7 @@ namespace Assets.Scripts.Shared
                     yield return null;
                 }
 
-                Dropdown.AddOptions(OptionsCached[index].GetRange(lastIndex, optionsCount - lastIndex));      
+                Dropdown.AddOptions(OptionsCachedNumerics[index].GetRange(lastIndex, optionsCount - lastIndex));      
                 HideDropdown();
                 yield return null;
                 ShowDropdown();
@@ -311,6 +340,20 @@ namespace Assets.Scripts.Shared
         [SerializeField] protected TMP_InputField InputField;
         [SerializeField] protected HintText HintText;
         [SerializeField] protected int CharacterLimit;
+
+        public int CharacterLimitAccessor
+        {
+            private set
+            {
+                CharacterLimit = value;
+            }
+
+            get
+            {
+                return CharacterLimit;
+            }
+        }
+
 
         protected string PreviousInput;
 

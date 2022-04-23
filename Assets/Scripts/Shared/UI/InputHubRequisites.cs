@@ -9,6 +9,8 @@ using System;
 namespace Assets.Scripts.Shared {
     public class InputHubRequisites : MonoBehaviour
     {
+        public TouchScreenInputAndroid KeyboardAndroid = null;
+
         public SearchbarBase SearchBarIfns;
         public SearchbarBase SearchBarOktmmf;
 
@@ -17,14 +19,25 @@ namespace Assets.Scripts.Shared {
         public Action<string> OnIfnsSet;
         public Action<string> OnOktmmfSet;
 
+        public Action ClearHubAction;
+
         private void Start()
         {
+            if (KeyboardAndroid == null)
+                KeyboardAndroid = GetComponent<TouchScreenInputAndroid>();
         }
 
-        public void Initialize(Action<string> onIfnsSet, Action<string> onOktmmfSet)
+        public void Initialize(Action<string> onIfnsSet, Action<string> onOktmmfSet, Action clearHubAction)
         {
             OnIfnsSet = onIfnsSet;
             OnOktmmfSet = onOktmmfSet;
+            ClearHubAction = clearHubAction;
+        }
+
+        public void SetEnableInput(bool enabled)
+        {
+            SearchBarIfns.EnableSelect(enabled);
+            SearchBarOktmmf.EnableSelect(enabled);
         }
 
         private void IfnsComplete(string ifns)
@@ -43,7 +56,9 @@ namespace Assets.Scripts.Shared {
 
                 SearchBarOktmmf.SwitchState(false);
                 SearchBarOktmmf.CloseSearchbar();
-                // Replace to HintPopup
+
+                // HintPopup and ClearHub
+                ClearHubAction?.Invoke();
             }
 
 
@@ -56,7 +71,7 @@ namespace Assets.Scripts.Shared {
         public void GotResponseIfns()
         {
             if (SearchBarIfns.Initialized == false)
-                SearchBarIfns.Initialize(IfnsComplete);
+                SearchBarIfns.Initialize(IfnsComplete, KeyboardAndroid);
 
             SearchBarIfns.SwitchState(true);
         }
@@ -64,7 +79,7 @@ namespace Assets.Scripts.Shared {
         public void GotResponseOktmmf()
         {
             if (SearchBarOktmmf.Initialized == false)
-                SearchBarOktmmf.Initialize(OktmmfComplete);
+                SearchBarOktmmf.Initialize(OktmmfComplete, KeyboardAndroid);
 
             SearchBarOktmmf.SwitchState(true);
         }
@@ -83,7 +98,8 @@ namespace Assets.Scripts.Shared {
 
                 DataInputRequisites.OktmmfComplete = "";
 
-                // Replace to HintPopup
+                // HintPopup and ClearHub
+                ClearHubAction?.Invoke();
             }
         }
     }
