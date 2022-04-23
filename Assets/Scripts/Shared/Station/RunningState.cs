@@ -11,15 +11,10 @@ namespace Assets.Scripts.Shared
         public const string RunningTrigger = "Running";
         public const string StopTrigger = "Running";
 
-        private readonly Parser _parser;
-
         public RunningState(InputHubRequisites inputHubRequisites, OutputHubRequisites outputHubRequisites,
             Animator animatorUI, IStationStateSwitcher stateSwitcher)
             : base(inputHubRequisites, outputHubRequisites, animatorUI, RunningTrigger, StopTrigger, stateSwitcher)
         {
-            // Add differences or make parserText in Connecting.
-            _parser = new ParserSite();
-
             Debug.Log("Running state created");
         }
 
@@ -54,85 +49,41 @@ namespace Assets.Scripts.Shared
             // Disable inputhub
         }
 
-        public override bool IsConnect()
+        public override void TryConnect()
         {
+        }
+
+        private bool HandleIfnsData()
+        {
+            NetworkRunner.GetIfns();
+            StateSwitcher.SwitchState<ConnectingState>();
+
             return true;
         }
 
         public void OnIfnsSet(string ifns)
         {
-            Debug.Log(ifns);
+            // DataInputRequisites.OktmmfComplete = "";
 
-            // TODO: Add check internet connection.
-            if (IsConnect() == false)
-            {
-                DataInputRequisites.OktmmfComplete = "";
-                StateSwitcher.SwitchState<ConnectingState>();
-
-                // Error connection
-                return;
-            }
-
-            // TODO: Check these expressions correct.
-            // TODO: Before this there are check on correctness
-            string oktmmfRawResponse = NetworkRunner.GetOktmmf(ifns);
-            Debug.Log(oktmmfRawResponse);
-
-            var ParsedResponse = _parser.ParseOktmmf(oktmmfRawResponse);
-            if (ParsedResponse == null)
-            {
-                DataInputRequisites.OktmmfComplete = "";
-
-                // Hint pop-up: "error ifns entered"
-                return;
-            }
-
-            DataInputRequisites.IfnsComplete = ifns;
-            DataInputRequisites.DataOktmmf = new DataOktmmf(ParsedResponse);
+            IfnsSaved = ifns;
+            NetworkRunner.GetOktmmf(ifns);
+            StateSwitcher.SwitchState<ConnectingState>();
         }
 
         public void OnOktmmfSet(string oktmmf)
         {
             Debug.Log(DataInputRequisites.OktmmfComplete);
 
-            // TODO: Add entered input check.
-            if (IsConnect() == false)
-            {
-                StateSwitcher.SwitchState<ConnectingState>();
-
-                // Error connection
-                return;
-            }
-
             DataInputRequisites.OktmmfComplete = oktmmf;
             HandlePayeeDetails();
         }
 
-        private bool HandleIfnsData()
-        {
-            var ResponseIfns = _parser.ParseIfns(NetworkRunner.GetIfns());
-            if (ResponseIfns == null)
-                return false;
-
-            DataInputRequisites.DataIfns = new DataIfns(ResponseIfns);
-            Debug.Log("Ifns successfully handled");
-            return true;
-        }
-
         private void HandlePayeeDetails()
         {
-            if (IsConnect() == false)
-            {
-                StateSwitcher.SwitchState<ConnectingState>();
-
-                // Error connection
-                return;
-            }
-
-            var PayeeRequisites = NetworkRunner.GetPayeeRequisites(DataInputRequisites.IfnsComplete,
+            NetworkRunner.GetPayeeRequisites(DataInputRequisites.IfnsComplete,
                 DataInputRequisites.OktmmfComplete);
 
-            OutputHubRequisites.UpdateHub(PayeeRequisites);
+            StateSwitcher.SwitchState<ConnectingState>();
         }
     }
 }

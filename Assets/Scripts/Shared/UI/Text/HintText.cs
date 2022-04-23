@@ -8,10 +8,23 @@ public class HintText : MonoBehaviour
 {
     private TMP_Text _text;
 
-    public string Text 
+    public string Text
     {
-        get => _text.text;
-        set => _text.text = value;
+        get
+        {
+            if (_text == null)
+                _text = GetComponent<TMP_Text>();
+
+            return _text.text;
+        }
+
+        set
+        {
+            if (_text == null)
+                _text = GetComponent<TMP_Text>();
+
+            _text.text = value;
+        }
     }
 
     private void Awake()

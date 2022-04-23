@@ -9,8 +9,12 @@ namespace Assets.Scripts.Shared
         protected readonly Animator AnimatorUI;
         protected readonly IStationStateSwitcher StateSwitcher;
 
+        protected readonly Core.Parser ParserResponse;
+
         protected readonly string StartTriggerName;
         protected readonly string StopTriggerName;
+
+        protected static string IfnsSaved = "";
 
         public BaseState(InputHubRequisites inputHubRequisites, OutputHubRequisites outputHubRequisites, Animator animatorUI, 
             string startTriggerName, string stopTriggerName, IStationStateSwitcher stateSwitcher)
@@ -21,6 +25,9 @@ namespace Assets.Scripts.Shared
             StartTriggerName = startTriggerName;
             StopTriggerName = stopTriggerName;
             StateSwitcher = stateSwitcher;
+
+            // Add differences or make parserText in Connecting.
+            ParserResponse = new Core.ParserSite();
         }
 
         public virtual void Start()
@@ -33,6 +40,6 @@ namespace Assets.Scripts.Shared
             AnimatorUI.SetTrigger(StopTriggerName);
         }
 
-        public abstract bool IsConnect();
+        public abstract void TryConnect();
     }
 }

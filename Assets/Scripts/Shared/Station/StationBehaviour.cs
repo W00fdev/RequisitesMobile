@@ -34,16 +34,11 @@ namespace Assets.Scripts.Shared
             Connect();
         }
 
-        public bool Connect()
+        public void Connect()
         {
-            bool connectionEstablished = _currentState.IsConnect();
+            _currentState.TryConnect();
 
-            if (connectionEstablished == false)
-            {
-                if (_retryConnection == null)
-                    _retryConnection = StartCoroutine(RetryConnection());
-            }
-            else
+            if (!(_currentState is ConnectingState))
             {
                 if (_retryConnection != null)
                 {
@@ -51,8 +46,11 @@ namespace Assets.Scripts.Shared
                     _retryConnection = null;
                 }
             }
-
-            return connectionEstablished;
+            else
+            {
+                if (_retryConnection == null)
+                    _retryConnection = StartCoroutine(RetryConnection());
+            }
         }
 
 /*        
@@ -74,23 +72,29 @@ namespace Assets.Scripts.Shared
             {
                 Connect();
             }
+            else if (_currentState is RunningState)
+            {
+                if (_retryConnection != null)
+                {
+                    StopCoroutine(_retryConnection);
+                    _retryConnection = null;
+                }
+            }
         }
 
         private IEnumerator RetryConnection()
         {
             int attempts = 0;
-            bool isConnectionEstablished = false;
-            while (attempts < _maxAttempts)
+            while (attempts < _maxAttempts && _currentState is ConnectingState)
             {
                 Debug.Log($"Try connection attempt: {attempts}");
                 yield return new WaitForSeconds(_attemptDelay);
-                isConnectionEstablished = _currentState.IsConnect();
-
-                if (isConnectionEstablished)
-                    break;
+                
+                _currentState.TryConnect();
+                attempts++;
             }
 
-            if (!isConnectionEstablished)
+            if (_currentState is ConnectingState)
             {
                 Debug.Log("Please, check your network connection.");
                 _retryConnection = StartCoroutine(RetryConnection());

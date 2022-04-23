@@ -14,7 +14,13 @@ namespace Assets.Scripts.Core
 
         private static CookieContainer cookieContainer = new CookieContainer();
 
-        public static void Initialize(bool debugInfo = false)
+        private static System.Action<string> _internetConnectionResponse; 
+        private static System.Action<string> _ifnsGetResponse; 
+        private static System.Action<string> _oktmmfGetResponse; 
+        private static System.Action<string> _payeeDetailsGetResponse; 
+
+        public static void Initialize(System.Action<string> internetConnectionResponse, System.Action<string> ifnsGetResponse,
+            System.Action<string> oktmmfGetResponse, System.Action<string> payeeDetailsGetResponse, bool debugInfo)
         {
             if (debugInfo)
             {
@@ -38,12 +44,42 @@ namespace Assets.Scripts.Core
 
                 Debug.Log("Internet : " + reachabilityString);
             }
+
+            _internetConnectionResponse = internetConnectionResponse;
+            _ifnsGetResponse = ifnsGetResponse;
+            _oktmmfGetResponse = oktmmfGetResponse;
+            _payeeDetailsGetResponse = payeeDetailsGetResponse;
         }
 
-        public static string GetIfns()
+        public static void CheckInternetConnection()
+        {
+            GetRequest request = new GetRequest("https://www.google.com/search?q=%D0%B3%D1%83%D0%B3%D0%BB", _internetConnectionResponse);
+            CookieContainer tempCookie = new CookieContainer();
+
+            request.Accept = "*/*";
+            request.Host = "www.google.com";
+            request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:98.0) Gecko/20100101 Firefox/98.0";
+
+
+            request.Headers.Add("Accept-Encoding", "gzip, deflate, br");
+            request.Headers.Add("Accept-Language", "en-US,en;q=0.5");
+            request.Headers.Add("DNT", "1");
+
+            request.Headers.Add("Sec-Fetch-Dest", "document");
+            request.Headers.Add("Sec-Fetch-Mode", "navigate");
+            request.Headers.Add("Sec-Fetch-Site", "none");
+            request.Headers.Add("Sec-Fetch-User", "?1");
+            request.Headers.Add("Sec-GPC", "1");
+            request.Headers.Add("Upgrade-Insecure-Requests", "1");
+
+            request.Run(ref tempCookie);
+        }
+
+        public static void GetIfns()
         {
             GetRequest request = new GetRequest(_siteBaseURI + 
-                "/static/tree2.html?inp=ifns&tree=SOUN_ADDRNO_FL&treeKind=LINKED&aver=3.42.6&sver=4.39.2&pageStyle=GM2");
+                "/static/tree2.html?inp=ifns&tree=SOUN_ADDRNO_FL&treeKind=LINKED&aver=3.42.6&sver=4.39.2&pageStyle=GM2",
+                _ifnsGetResponse);
 
             request.Accept = "*/*";
             request.Host = "service.nalog.ru";
@@ -59,12 +95,12 @@ namespace Assets.Scripts.Core
             request.Headers.Add("Upgrade-Insecure-Requests", "1");
 
             request.Run(ref cookieContainer);
-            return request.Response;
+            //return request.Response;
         }
 
-        public static string GetOktmmf(string ifnsCode)
+        public static void GetOktmmf(string ifnsCode)
         {
-            PostRequest request = new PostRequest(_siteRequsitesURI);
+            PostRequest request = new PostRequest(_siteRequsitesURI, _oktmmfGetResponse);
             request.Data = $"c=getOktmmf&ifns={ifnsCode}&okatom=";
 
             request.Accept = "*/*";
@@ -86,12 +122,12 @@ namespace Assets.Scripts.Core
             request.Headers.Add("Sec-GPC", "1");
 
             request.Run(ref cookieContainer);
-            return request.Response;
+            //return request.Response;
         }
 
-        public static PayeeDetails GetPayeeRequisites(string ifnsCode, string oktmnfCode)
+        public static void GetPayeeRequisites(string ifnsCode, string oktmnfCode)
         {
-            PostRequest request = new PostRequest(_siteRequsitesURI);
+            PostRequest request = new PostRequest(_siteRequsitesURI, _payeeDetailsGetResponse);
 
             request.Data = $"c=next&step=1&npKind=fl&objectAddr=&objectAddr_zip=&objectAddr_ifns=&objectAddr_okatom=&ifns={ifnsCode}&oktmmf={oktmnfCode}&PreventChromeAutocomplete=";
 
@@ -113,9 +149,9 @@ namespace Assets.Scripts.Core
             request.Headers.Add("Sec-Fetch-Site", "same-origin");
 
             request.Run(ref cookieContainer);
-            Debug.Log(request.Response);
+            //Debug.Log(request.Response);
 
-            if (request.Response != null)
+/*            if (request.Response != null)
             {
                 PayeeDetails dataRequisites = new PayeeDetails();
                 dataRequisites = JsonUtility.FromJson<PayeeDetails>(request.Response);
@@ -123,9 +159,9 @@ namespace Assets.Scripts.Core
                 //Debug.Log(dataRequisites.payeeDetails.payeeAcc);
 
                 return dataRequisites;
-            }
+            }*/
 
-            return null;
+            //return null;
         }
     }
 }

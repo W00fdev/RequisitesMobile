@@ -25,8 +25,6 @@ namespace Assets.Scripts.Shared {
         {
             OnIfnsSet = onIfnsSet;
             OnOktmmfSet = onOktmmfSet;
-
-            SearchBarIfns.Initialize(IfnsComplete);
         }
 
         private void IfnsComplete(string ifns)
@@ -35,10 +33,6 @@ namespace Assets.Scripts.Shared {
             {
                 DataInputRequisites.IfnsComplete = ifns;
                 OnIfnsSet?.Invoke(ifns);
-                if (SearchBarOktmmf.Initialized == false)
-                    SearchBarOktmmf.Initialize(OktmmfComplete);
-
-                SearchBarOktmmf.SwitchState(true);
             }
             else
             {
@@ -57,6 +51,22 @@ namespace Assets.Scripts.Shared {
 
             // HintedInputOktmmf.SwitchState(false);
             // HintedDropdownOktmmf.SwitchState(false);
+        }
+
+        public void GotResponseIfns()
+        {
+            if (SearchBarIfns.Initialized == false)
+                SearchBarIfns.Initialize(IfnsComplete);
+
+            SearchBarIfns.SwitchState(true);
+        }
+
+        public void GotResponseOktmmf()
+        {
+            if (SearchBarOktmmf.Initialized == false)
+                SearchBarOktmmf.Initialize(OktmmfComplete);
+
+            SearchBarOktmmf.SwitchState(true);
         }
 
 

@@ -45,8 +45,6 @@ namespace Assets.Scripts.Core
 
             }
 
-            NetworkRunner.Initialize();
-
             Application.wantsToQuit += WantsToQuit;
             Application.quitting += Quit;
         }

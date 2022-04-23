@@ -10,10 +10,10 @@ using static Assets.Scripts.Core.ParserResponse.ResponseType;
 namespace Assets.Scripts.Shared
 {
     [RequireComponent(typeof(TMP_Dropdown))]
-    public sealed class SearchbarOktmmf : SearchbarBase
+    public class SearchbarOktmmf : SearchbarBase
     {
         [SerializeField]
-        private char[] digits;
+        protected char[] digits;
 
         private void Awake()
         {
@@ -29,8 +29,8 @@ namespace Assets.Scripts.Shared
             // Можно добавить с 4ой цифры
             OptionsCached = new List<TMP_Dropdown.OptionData>[2]
             {
-                new List<TMP_Dropdown.OptionData>(150) { EmptyOption },
-                new List<TMP_Dropdown.OptionData>(150) { EmptyOption },
+                new List<TMP_Dropdown.OptionData>(350) { EmptyOption },
+                new List<TMP_Dropdown.OptionData>(200) { EmptyOption },
             };
 
             digits = new char[CharacterLimit];
@@ -65,7 +65,8 @@ namespace Assets.Scripts.Shared
                 }
 
                 Dropdown.ClearOptions();
-                Dropdown.AddOptions(OptionsCached[0]);
+                AddOptionsOptimized(0);
+                // Dropdown.AddOptions(OptionsCached[0]);
                 DropdownResponse = new ParserResponse(EMPTY);
                 PreviousInputDropdown = newInput;
 
@@ -109,7 +110,8 @@ namespace Assets.Scripts.Shared
             }
 
             Dropdown.ClearOptions();
-            Dropdown.AddOptions(OptionsCached[1]);
+            //Dropdown.AddOptions(OptionsCached[1]);
+            AddOptionsOptimized(1);
 
             if (Dropdown.options.Count > 1)
             {
@@ -187,7 +189,7 @@ namespace Assets.Scripts.Shared
             return false;
         }
 
-        private void ClearDigits()
+        protected void ClearDigits()
         {
             for (int i = 0; i < CharacterLimit; i++)
                 digits[i] = '-';

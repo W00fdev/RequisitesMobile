@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -28,9 +28,16 @@ namespace Assets.Scripts.Shared
         protected UnityEvent<string> OnInputComplete = new UnityEvent<string>();
         protected ParserResponse DropdownResponse;
         protected bool NeedToRefreshLayer = true;
-        protected bool empty = true;
+        protected bool Empty = true;
 
         protected Coroutine Refresher = null;
+
+        [Header("Характеристика оптимизации")]
+        [SerializeField] protected int BatchSize = 25;
+
+        protected Coroutine AddOptionsBatchedCoroutine = null;
+        protected bool AreOptionsAdding = false;
+
 
         public virtual void Initialize(UnityAction<string> inputCompleteAction)
         {
@@ -47,9 +54,11 @@ namespace Assets.Scripts.Shared
 
         public void CloseSearchbar()
         {
-            Dropdown.options.Clear();
+            //Dropdown.options.Clear();
             ClearOptions();
             InputField.text = "";
+            PreviousInputDropdown = "NOT INITIALIZED";
+            Empty = true;
             SwitchState(false);
         }
 
@@ -66,7 +75,7 @@ namespace Assets.Scripts.Shared
                 UpdateHint();
             }
 
-            if (empty == true && enabled == true)
+            if (Empty == true && enabled == true)
                 InitializeOptionsFirst();
 
             SwitchStateInputField(enabled);
@@ -234,6 +243,58 @@ namespace Assets.Scripts.Shared
         protected virtual void HideDropdown()
         {
             Dropdown.Hide();
+        }
+
+        protected virtual void AddOptionsOptimized(int index)
+        {
+            if (AreOptionsAdding == true)
+            {
+                StopCoroutine(AddOptionsBatchedCoroutine);
+                Dropdown.ClearOptions();
+            }
+
+            // Dropdown.AddOptions(OptionsCached[0]);
+            AreOptionsAdding = true;
+            AddOptionsBatchedCoroutine = StartCoroutine(AddOptionsBatched(index));
+        }
+
+        protected IEnumerator AddOptionsBatched(int index)
+        {
+            int optionsCount = OptionsCached[index].Count;
+            if (optionsCount < BatchSize)
+            {
+                Dropdown.AddOptions(OptionsCached[index]);
+                AreOptionsAdding = false;
+                yield return null;
+            }
+            else
+            {
+                // Enable batchingCount per frame
+                int lastIndex = 0;
+                for (int i = 0; i < optionsCount; i += BatchSize)
+                {
+                    int range = Mathf.Min(BatchSize, optionsCount - i);
+                    Dropdown.AddOptions(OptionsCached[index].GetRange(i, range));
+                    if (range == optionsCount - i)
+                    {
+                        lastIndex = optionsCount;
+                    }
+                    else
+                    {
+                        lastIndex = i;
+                    }
+                    yield return null;
+                }
+
+                Dropdown.AddOptions(OptionsCached[index].GetRange(lastIndex, optionsCount - lastIndex));      
+                HideDropdown();
+                yield return null;
+                ShowDropdown();
+                //Dropdown.RefreshShownValue();
+
+                AreOptionsAdding = false;
+
+            }
         }
 
         protected abstract ParserResponse UpdateDropdown(string newInput);

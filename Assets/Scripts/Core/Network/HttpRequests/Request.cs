@@ -8,6 +8,8 @@ namespace Assets.Scripts.Core
         protected HttpWebRequest _request;
         protected string _adress;
 
+        protected System.Action<string> OnResponseGet;
+
         public Dictionary<string, string> Headers = new Dictionary<string, string>();
 
         public string Response { get; set; }
@@ -15,8 +17,13 @@ namespace Assets.Scripts.Core
         public string Host { get; set; }
         public string UserAgent { get; set; }
 
-        public Request(string adress) => _adress = adress;
-
+        public Request(string adress, System.Action<string> onResponseGet)
+        {
+            _adress = adress;
+            OnResponseGet = onResponseGet;
+        }
         public abstract void Run(ref CookieContainer cookie);
+
+        protected abstract void FinishRun(System.IAsyncResult result);
     }
 }

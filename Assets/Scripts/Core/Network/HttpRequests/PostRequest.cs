@@ -1,6 +1,7 @@
 using System.Net;
 using System.IO;
 using System.Text;
+using UnityEngine;
 
 namespace Assets.Scripts.Core
 {
@@ -10,7 +11,7 @@ namespace Assets.Scripts.Core
         public string Data { get; set; }
         public string ContentType { get; set; }
 
-        public PostRequest(string adress) : base(adress) { }
+        public PostRequest(string adress, System.Action<string> onResponseGet) : base(adress, onResponseGet) { }
 
         public override void Run(ref CookieContainer cookie)
         {
@@ -33,14 +34,28 @@ namespace Assets.Scripts.Core
                 _request.Headers.Add(pair.Key, pair.Value);
             }
 
+            _request.BeginGetResponse(new System.AsyncCallback(FinishRun), _request);
+        }
+
+        protected override void FinishRun(System.IAsyncResult result)
+        {
             try
             {
-                using HttpWebResponse responce = (HttpWebResponse)_request.GetResponse();
-                Stream stream = responce.GetResponseStream();
+                HttpWebResponse response = (result.AsyncState as HttpWebRequest).EndGetResponse(result) as HttpWebResponse;
+                Stream stream = response.GetResponseStream();
                 if (stream != null)
+                {
                     Response = new StreamReader(stream).ReadToEnd();
+                    UnityMainThread.wkr.AddJob(OnResponseGet, Response);
+                    
+                    // Not thread-safe for Unity
+                    // OnResponseGet?.Invoke(Response);
+                }
             }
-            catch { }
+            catch( System.Exception e)
+            {
+                Debug.LogError(e.Message);
+            }
         }
 
     }

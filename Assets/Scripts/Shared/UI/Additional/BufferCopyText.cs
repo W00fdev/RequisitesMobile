@@ -37,14 +37,15 @@ namespace Assets.Scripts.Shared
             GUIUtility.systemCopyBuffer = _text.text;
             _animatorPopup.SetTrigger(_popupTriggerName);
 
-
             if (_clickedCoroutine != null)
             {
                 StopCoroutine(_clickedCoroutine);
             }
-
-            _isClicked = true;
-            _clickedCoroutine = StartCoroutine(ClickedCoroutine());
+            else
+            {
+                _isClicked = true;
+                _clickedCoroutine = StartCoroutine(ClickedCoroutine());
+            }
 
             _image.color = _mouseClickColor;
         }
@@ -70,6 +71,8 @@ namespace Assets.Scripts.Shared
             yield return new WaitForSeconds(_clickedColorDelay);
             _isClicked = false;
             _clickedCoroutine = null;
+
+            _image.color = _mouseExitColor;
         }
     }
 }

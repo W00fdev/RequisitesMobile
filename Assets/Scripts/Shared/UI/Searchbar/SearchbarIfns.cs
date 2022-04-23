@@ -13,7 +13,7 @@ using static Assets.Scripts.Core.ParserResponse.ResponseType;
 namespace Assets.Scripts.Shared 
 {
     [RequireComponent(typeof(TMP_Dropdown))]
-    public sealed class SearchbarIfns : SearchbarBase
+    public class SearchbarIfns : SearchbarBase
     {
 
         private void Awake()
@@ -64,7 +64,8 @@ namespace Assets.Scripts.Shared
                 if (OptionsCached[index].Count <= 1)
                     throw new Exception($"{index} tier doesn't initialized.");
 
-                Dropdown.AddOptions(OptionsCached[index]);
+                //Dropdown.AddOptions(OptionsCached[index]);
+                AddOptionsOptimized(index);
                 DropdownResponse = (newInput.Length == 0) ? new ParserResponse(EMPTY) : new ParserResponse(OK, OptionsCached[index][FIRST].text);
                 //PreviousInputDropdown = newInput;
                 return DropdownResponse;
@@ -125,7 +126,8 @@ namespace Assets.Scripts.Shared
                 }
             }
 
-            Dropdown.AddOptions(OptionsCached[newInput.Length]);
+            //Dropdown.AddOptions(OptionsCached[newInput.Length]);
+            AddOptionsOptimized(newInput.Length);
 
             if (Dropdown.options.Count > 1)
             {

@@ -6,7 +6,7 @@ namespace Assets.Scripts.Shared
     public class Popups : MonoBehaviour, IPointerClickHandler
     {
         public Animator PopupAnimator;
-        public string ExitTriggerName;
+        public string ExitTriggerName = "Running";
 
         public void OnPointerClick(PointerEventData eventData)
         {
@@ -19,9 +19,7 @@ namespace Assets.Scripts.Shared
             {
                 Debug.LogError("Popup don't initialized.");
             }
-        }
-
-        
+        } 
     }
 }
 
