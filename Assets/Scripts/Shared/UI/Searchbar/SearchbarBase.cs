@@ -277,10 +277,7 @@ namespace Assets.Scripts.Shared
         protected virtual void AddOptionsOptimized(int index)
         {
             if (AreOptionsAdding == true)
-            {
                 StopCoroutine(AddOptionsBatchedCoroutine);
-                Dropdown.ClearOptions();
-            }
 
             // Dropdown.AddOptions(OptionsCached[0]);
             AreOptionsAdding = true;
@@ -289,6 +286,7 @@ namespace Assets.Scripts.Shared
 
         protected IEnumerator AddOptionsBatched(int index)
         {
+            Dropdown.ClearOptions();
             int optionsCount = OptionsCachedNumerics[index].Count;
             if (optionsCount < BatchSize)
             {

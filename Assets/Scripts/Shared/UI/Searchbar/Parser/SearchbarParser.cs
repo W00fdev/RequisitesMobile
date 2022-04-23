@@ -55,6 +55,10 @@ namespace Assets.Scripts.Shared
             CharacterLimitOktmmf = 8;
         }
 
+        // ============================ INITIALIZE FIRST OPTIONS ===============================
+
+        // Returns the copy of list
+
         public static List<string> InitializeFirstOptionsIfns()
         {
             _filterIfns.AccordingOptions.Clear();
@@ -75,7 +79,7 @@ namespace Assets.Scripts.Shared
             if (_filterIfns.AccordingOptions.Count <= 1)
                 throw new System.Exception("Tier 1 option can't be size <= 1");
 
-            return _filterIfns.AccordingOptions;
+            return _filterIfns.AccordingOptions.ToList();
         }
 
         public static List<string> InitializeFirstOptionsOktmmf(ref char[] digits)
@@ -109,9 +113,19 @@ namespace Assets.Scripts.Shared
             if (_filterOktmmf.AccordingOptions.Count <= 1)
                 throw new System.Exception("Tier 1 option oktmmf can't be size <= 1");
 
-            return _filterOktmmf.AccordingOptions;
+            return _filterOktmmf.AccordingOptions.ToList();
         }
 
+        // ======================================================================================
+
+
+
+
+        // ============================ UPDATE DROPDOWN IFNS ===============================
+
+        // Returns the copy of list
+
+        // Original + words parser
         public static List<string> UpdateDropdownIfns(List<string> OptionsCached, string newInput)
         {
             // newInput.Length != 0.
@@ -127,6 +141,8 @@ namespace Assets.Scripts.Shared
 
             return _filterIfns.AccordingOptions;
         }
+
+        // Changes the original OptionsCached
 
         // Original algorithm
         private static List<string> UpdateDropdownNumericsIfns(List<string> OptionsCached, string newInput)
@@ -202,6 +218,81 @@ namespace Assets.Scripts.Shared
             return OptionsCached;
         }
 
+
+        // ==================================================================================
+
+
+
+
+        // ============================ UPDATE DROPDOWN OKTMMF ===============================
+
+        public static List<string> UpdateDropdownOktmmf(List<string> optionsOrigin, string newInput)
+        {
+            if (IsStringNumeric(newInput) == true)
+                return UpdateDropdownNumericsOktmmf(optionsOrigin, newInput);
+
+            throw new System.Exception("Not implemented logic");
+
+            return _filterOktmmf.AccordingOptions;
+        }
+
+        private static List<string> UpdateDropdownNumericsOktmmf(List<string> optionsOrigin, string newInput)
+        {
+            List<string> previousCopy;
+            //
+            // Use previous or use otigin
+            if (newInput.Length > _filterOktmmf.PreviousInput.Length)
+                previousCopy = new List<string>(_filterOktmmf.AccordingOptions);
+            else
+                previousCopy = new List<string>(optionsOrigin);
+
+            _filterOktmmf.AccordingOptions.Clear();
+            _filterOktmmf.AccordingOptions.Add("");
+
+            // Main cycle-logic
+            bool foundMatch = false;
+            foreach (var option in previousCopy)
+            {
+                if (option == "")
+                    continue;
+
+                _string.Clear();
+                _string.Append(option.Substring(0, CharacterLimitOktmmf));
+
+                // Elements are sorted.
+                int checkSortedMatch = string.Compare(newInput.Substring(0, newInput.Length),
+                    _string.ToString().Substring(0, newInput.Length));
+
+                if (checkSortedMatch != 0)
+                {
+                    if (foundMatch == true)
+                        break;
+                    continue;
+                }
+                foundMatch = true;
+
+                _string.Append(option.Substring(CharacterLimitOktmmf).ToASCII());
+                _filterOktmmf.AccordingOptions.Add(_string.ToString());
+            }
+
+            _filterOktmmf.PreviousInput = newInput;
+            return _filterOktmmf.AccordingOptions;
+        }
+
+        // ==================================================================================
+
+
+
+
+
+        // ============================ ADDITIONAL ===============================
+
+        public static void SetPreviousInputOktmmf(string previousInput)
+        {
+            // Need to implement this in UpdateDropdown { newInput.Length == 0 }
+            _filterOktmmf.PreviousInput = previousInput;
+        }
+
         private static bool IsStringNumeric(string newInput)
         {
             for (int i = 0; i < newInput.Length; i++)
@@ -213,6 +304,7 @@ namespace Assets.Scripts.Shared
             return true;
         }
 
+        // =======================================================================
     }
 
 }

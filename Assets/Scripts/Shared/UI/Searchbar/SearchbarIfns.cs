@@ -65,6 +65,7 @@ namespace Assets.Scripts.Shared
 
             // Main logic parser function call.
             int index = newInput.Length;
+            // OptionsCachedNumerics[index].Clear();
             OptionsCachedNumerics[index] = SearchbarParser.UpdateDropdownIfns(OptionsCachedNumerics[index], newInput);
             // --------------------------------
 
@@ -73,7 +74,6 @@ namespace Assets.Scripts.Shared
             else
                 DropdownResponse = new ParserResponse(NOTFOUND, newInput);
 
-            //Dropdown.AddOptions(OptionsCached[newInput.Length]);
             AddOptionsOptimized(newInput.Length);
             return DropdownResponse;
         }

@@ -54,9 +54,10 @@ namespace Assets.Scripts.Shared
                 return DropdownResponse;
 
             Dropdown.Hide();
-            Dropdown.ClearOptions();
 
-            //int index = newInput.Length;
+            // It uses next Dropdown.options
+            //Dropdown.ClearOptions();
+
             if (newInput.Length == 0)
             {
                 if (OptionsCachedNumerics[0].Count <= 1)
@@ -65,73 +66,30 @@ namespace Assets.Scripts.Shared
                     throw new Exception("Tier 0 doesn't initialized.");
                 }
 
-                
+                Dropdown.ClearOptions();
                 AddOptionsOptimized(0);
-                // Dropdown.AddOptions(OptionsCached[0]);
                 DropdownResponse = new ParserResponse(EMPTY);
                 PreviousInputDropdown = newInput;
+                SearchbarParser.SetPreviousInputOktmmf(PreviousInputDropdown);
 
                 return DropdownResponse;
             }
 
-            //OptionsTier[0].Clear();
-            //OptionsTier[0].Add(EmptyOption);
-            OptionsCachedNumerics[1].Clear();
-            OptionsCachedNumerics[1].Add(EmptyOption);
 
-            var dropdownData = Dropdown.options;
-            var tempListTmp = new List<TMP_Dropdown.OptionData>();
-            if (newInput.Length < PreviousInputDropdown.Length)
-            {
-                tempListTmp.Add(new TMP_Dropdown.OptionData(""));
-                //tempListTmp.AddRange()
-                foreach(string optionString in OptionsCachedNumerics[0])
-                {
-                    tempListTmp.Add(new TMP_Dropdown.OptionData(optionString));
-                }
+            // Main logic
+            //OptionsCachedNumerics[1].Clear();
+            OptionsCachedNumerics[1] = SearchbarParser.UpdateDropdownOktmmf(OptionsCachedNumerics[0], newInput);
 
-                dropdownData = tempListTmp;
 
-            }
-
-            bool foundMatch = false;
-            foreach (var option in dropdownData)
-            {
-                if (option.text == "")
-                    continue;
-
-                OptionString.Clear();
-                OptionString.Append(option.text.Substring(0, CharacterLimit));
-
-                // Elements are sorted.
-                int checkSortedMatch = string.Compare(newInput.Substring(0, newInput.Length),
-                    OptionString.ToString().Substring(0, newInput.Length));
-
-                if (checkSortedMatch != 0)
-                {
-                    if (foundMatch == true)
-                        break;
-                    continue;
-                }
-                foundMatch = true;
-
-                OptionString.Append(option.text.Substring(CharacterLimit).ToASCII());
-                OptionsCachedNumerics[1].Add(OptionString.ToString());
-                //if (newInput.Length == 0)
-                //    OptionsTier[0].Add(new TMP_Dropdown.OptionData(OptionString.ToString()));
-            }
-
-            //Dropdown.AddOptions(OptionsCached[1]);
-            AddOptionsOptimized(1);
-
-            if (Dropdown.options.Count > 1)
-            {
-                DropdownResponse = new ParserResponse(OK, Dropdown.options[FIRST].text);
-            }
+            if (OptionsCachedNumerics[1].Count > 1)
+                DropdownResponse = new ParserResponse(OK, OptionsCachedNumerics[1][FIRST]);
             else
-            {
                 DropdownResponse = new ParserResponse(NOTFOUND, newInput);
-            }
+
+            // Remove hard dependency with OptionsNumerics
+            // Make it list<string> param
+            // Delete OptionsCached and OptionsCachedNumerics[1]
+            AddOptionsOptimized(1);
 
             PreviousInputDropdown = newInput;
             return DropdownResponse;
