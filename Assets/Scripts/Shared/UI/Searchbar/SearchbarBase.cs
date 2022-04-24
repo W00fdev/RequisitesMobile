@@ -38,7 +38,7 @@ namespace Assets.Scripts.Shared
 
         public bool Initialized { get; set; } = false;
 
-        protected UnityEvent<string> OnInputComplete = new UnityEvent<string>();
+        protected UnityEvent<string, bool> OnInputComplete = new UnityEvent<string, bool>();
         protected TouchScreenInputAndroid KeyboardAndroid = null;
         protected ParserResponse DropdownResponse;
         protected bool NeedToRefreshLayer = true;
@@ -53,7 +53,7 @@ namespace Assets.Scripts.Shared
         protected bool AreOptionsAdding = false;
 
 
-        public virtual void Initialize(UnityAction<string> inputCompleteAction, TouchScreenInputAndroid keyboardAndroid)
+        public virtual void Initialize(UnityAction<string, bool> inputCompleteAction, TouchScreenInputAndroid keyboardAndroid)
         {
             OnInputComplete.AddListener(inputCompleteAction);
             KeyboardAndroid = keyboardAndroid;
@@ -187,7 +187,6 @@ namespace Assets.Scripts.Shared
                 {
                     canvas.sortingOrder = 30000 + LayerOrder * 2;
                     NeedToRefreshLayer = false;
-                    Debug.Log("Dropdown list has refreshed..." + canvas);
                 }
             }
 

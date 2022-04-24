@@ -14,8 +14,8 @@ namespace Assets.Scripts.Shared
         public void ShowKeyboard(SearchbarBase searchbar)
         {
             _currentSearchBar = searchbar;
-            _keyboard = TouchScreenKeyboard.Open(_currentSearchBar.Text, TouchScreenKeyboardType.NumberPad, false,
-                false, false, false, "", _currentSearchBar.CharacterLimitAccessor);
+            _keyboard = TouchScreenKeyboard.Open(_currentSearchBar.Text, TouchScreenKeyboardType.Default, false,
+                false, false, false, "");
             _previousInput = _keyboard.text;
         }
 

@@ -293,7 +293,7 @@ namespace Assets.Scripts.Shared
             _filterOktmmf.PreviousInput = previousInput;
         }
 
-        private static bool IsStringNumeric(string newInput)
+        public static bool IsStringNumeric(string newInput)
         {
             for (int i = 0; i < newInput.Length; i++)
             {

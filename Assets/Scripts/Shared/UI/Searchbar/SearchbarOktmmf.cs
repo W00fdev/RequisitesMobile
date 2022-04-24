@@ -39,7 +39,7 @@ namespace Assets.Scripts.Shared
             // </Dropdown>
         }
 
-        public override void Initialize(UnityAction<string> inputCompleteAction, TouchScreenInputAndroid keyboardAndroid)
+        public override void Initialize(UnityAction<string, bool> inputCompleteAction, TouchScreenInputAndroid keyboardAndroid)
         {
             //ClearDigits();
             base.Initialize(inputCompleteAction, keyboardAndroid);
@@ -160,17 +160,28 @@ namespace Assets.Scripts.Shared
                 return;
 
             UpdateDropdown(newInput);
-            UpdateHint();
 
-            if (DropdownResponse.IsNotFound() || newInput.Length != CharacterLimit)
-                ShowDropdown();
-            else if (newInput.Length == CharacterLimit)
-                HideDropdown();
+            bool isNumeric = SearchbarParser.IsStringNumeric(newInput);
 
-            if (newInput.Length == CharacterLimit && DropdownResponse.IsOk())
-                OnInputComplete?.Invoke(newInput);
-            else
-                SelectInputField(); // After the options choosing focus is lost.
+            if (isNumeric)
+            {
+                UpdateHint();
+
+                if (newInput.Length != CharacterLimit || DropdownResponse.IsNotFound())
+                    ShowDropdown();
+                else if (newInput.Length == CharacterLimit)
+                    HideDropdown();
+
+                // AutoFill from numeric input
+                if (newInput.Length == CharacterLimit && DropdownResponse.IsOk())
+                {
+                    InputField.SetTextWithoutNotify(DropdownResponse.Response);
+                    //InputField.ForceLabelUpdate();
+                    OnInputComplete?.Invoke(newInput, true);
+                }
+                else
+                    SelectInputField(); // After the options choosing focus is lost.
+            }
 
             PreviousInput = newInput;
         }

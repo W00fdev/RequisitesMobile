@@ -36,7 +36,7 @@ namespace Assets.Scripts.Shared
             // </Dropdown>
         }
 
-        public override void Initialize(UnityAction<string> inputCompleteAction, TouchScreenInputAndroid keyboardAndroid)
+        public override void Initialize(UnityAction<string, bool> inputCompleteAction, TouchScreenInputAndroid keyboardAndroid)
         {
             base.Initialize(inputCompleteAction, keyboardAndroid);
             // Need to select input field.
@@ -119,19 +119,30 @@ namespace Assets.Scripts.Shared
                 return;
 
             UpdateDropdown(newInput);
-            UpdateHint();
 
-            if (DropdownResponse.IsNotFound() || newInput.Length != CharacterLimit)
-                ShowDropdown();
-            else if (newInput.Length == CharacterLimit)
-                HideDropdown();
+            bool isNumeric = SearchbarParser.IsStringNumeric(newInput);
 
-            if (PreviousInput.Length == CharacterLimit && newInput.Length < CharacterLimit)
-                OnInputComplete?.Invoke(newInput);
-            else if (newInput.Length == CharacterLimit && DropdownResponse.IsOk())
-                OnInputComplete?.Invoke(newInput);
-            else
-                SelectInputField(); // After the options choosing focus is lost.
+            if (isNumeric)
+            {
+                UpdateHint();
+
+                if (newInput.Length != CharacterLimit || DropdownResponse.IsNotFound())
+                    ShowDropdown();
+                else if (newInput.Length == CharacterLimit)
+                    HideDropdown();
+
+                if (PreviousInput.Length == CharacterLimit && newInput.Length < CharacterLimit
+                    || newInput.Length == CharacterLimit && DropdownResponse.IsOk()
+                    )
+                {
+                    InputField.SetTextWithoutNotify(DropdownResponse.Response);
+                    OnInputComplete?.Invoke(newInput, true);
+                }
+                else
+                {
+                    SelectInputField(); // After the options choosing focus is lost.
+                }
+            }
 
             PreviousInput = newInput;
         }

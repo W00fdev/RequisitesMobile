@@ -40,32 +40,33 @@ namespace Assets.Scripts.Shared {
             SearchBarOktmmf.EnableSelect(enabled);
         }
 
-        private void IfnsComplete(string ifns)
+        private void IfnsComplete(string ifns, bool numeric)
         {
-            if (DataInputRequisites.DataIfns.CheckIfnsExistence(ifns))
+            if (numeric)
             {
-                DataInputRequisites.IfnsComplete = ifns;
-                OnIfnsSet?.Invoke(ifns);
-            }
-            else
-            {
-                Debug.LogError($"Ifns {ifns} doesn't exist");
+                if (DataInputRequisites.DataIfns.CheckIfnsExistence(ifns))
+                {
+                    DataInputRequisites.IfnsComplete = ifns;
+                    OnIfnsSet?.Invoke(ifns);
+                }
+                else
+                {
+                    DataInputRequisites.IfnsComplete = "";
+                    DataInputRequisites.OktmmfComplete = "";
 
-                DataInputRequisites.IfnsComplete = "";
-                DataInputRequisites.OktmmfComplete = "";
+                    SearchBarOktmmf.SwitchState(false);
+                    SearchBarOktmmf.CloseSearchbar();
 
-                SearchBarOktmmf.SwitchState(false);
-                SearchBarOktmmf.CloseSearchbar();
+                    // HintPopup and ClearHub
+                    ClearHubAction?.Invoke();
+                }
 
-                // HintPopup and ClearHub
-                ClearHubAction?.Invoke();
-            }
+                return;
+            }    
+
+            // Non-numeric
 
 
-            // De-activate oktmmf dropdown and input
-
-            // HintedInputOktmmf.SwitchState(false);
-            // HintedDropdownOktmmf.SwitchState(false);
         }
 
         public void GotResponseIfns()
@@ -85,22 +86,30 @@ namespace Assets.Scripts.Shared {
         }
 
 
-        private void OktmmfComplete(string oktmmf)
+        private void OktmmfComplete(string oktmmf, bool numeric)
         {
-            if (DataInputRequisites.DataOktmmf.CheckOktmmfExistence(oktmmf))
+            if (numeric)
             {
-                DataInputRequisites.OktmmfComplete = oktmmf;
-                OnOktmmfSet?.Invoke(oktmmf);
-            }
-            else
-            {
-                Debug.LogError($"Oktmmf {oktmmf} doesn't exist");
+                if (DataInputRequisites.DataOktmmf.CheckOktmmfExistence(oktmmf))
+                {
+                    DataInputRequisites.OktmmfComplete = oktmmf;
+                    OnOktmmfSet?.Invoke(oktmmf);
+                }
+                else
+                {
+                    DataInputRequisites.OktmmfComplete = "";
 
-                DataInputRequisites.OktmmfComplete = "";
+                    // HintPopup and ClearHub
+                    ClearHubAction?.Invoke();
+                }
 
-                // HintPopup and ClearHub
-                ClearHubAction?.Invoke();
+                return;
             }
+
+            // Non-numeric
+
+
+
         }
     }
 }
