@@ -8,6 +8,8 @@ namespace Assets.Scripts.Shared
         public const string ConnectingTrigger = "Loading";
         public const string StopTrigger = "Running";
 
+        public bool HasIfns = false;
+
         public ConnectingState(InputHubRequisites inputHubRequisites, OutputHubRequisites outputHubRequisites,
             Animator animatorUI, IStationStateSwitcher stateSwitcher)
             :base(inputHubRequisites, outputHubRequisites, animatorUI, ConnectingTrigger, StopTrigger, stateSwitcher)
@@ -36,9 +38,14 @@ namespace Assets.Scripts.Shared
 
         private void HandleIfnsDataResponse(string responseIfns)
         {
+            if (HasIfns == true)
+                return;
+
             var ResponseIfns = ParserResponse.ParseIfns(responseIfns);
             if (ResponseIfns == null)
                 return;
+
+            HasIfns = true;
 
             DataInputRequisites.DataIfns = new DataIfns(ResponseIfns);
             Debug.Log("Ifns successfully handled");
@@ -52,6 +59,9 @@ namespace Assets.Scripts.Shared
             // TODO: Check these expressions correct.
             // TODO: Before this there are check on correctness
 
+            if (StateSwitcher.HasToUpdateOktmmf() == false)
+                return;
+
             var ParsedResponse = ParserResponse.ParseOktmmf(responseOktmmf);
             if (ParsedResponse == null)
             {
@@ -61,8 +71,12 @@ namespace Assets.Scripts.Shared
                 return;
             }
 
+            StateSwitcher.SetHasToUpdateOktmmf(false);
+
             DataInputRequisites.IfnsComplete = IfnsSaved;
             DataInputRequisites.DataOktmmf = new DataOktmmf(ParsedResponse);
+
+            Debug.Log("Oktmmf successfully handled");
 
             InputHubRequisites.GotResponseOktmmf();
             StateSwitcher.SwitchState<RunningState>();
@@ -73,7 +87,6 @@ namespace Assets.Scripts.Shared
             PayeeDetails dataRequisites = null;
             if (responsePayeeDetails != null)
             {
-                dataRequisites = new PayeeDetails();
                 dataRequisites = JsonUtility.FromJson<PayeeDetails>(responsePayeeDetails);
             }
 

@@ -68,6 +68,7 @@ namespace Assets.Scripts.Shared
             // DataInputRequisites.OktmmfComplete = "";
 
             IfnsSaved = ifns;
+            StateSwitcher.SetHasToUpdateOktmmf(true);
             NetworkRunner.GetOktmmf(ifns);
             StateSwitcher.SwitchState<ConnectingState>();
         }

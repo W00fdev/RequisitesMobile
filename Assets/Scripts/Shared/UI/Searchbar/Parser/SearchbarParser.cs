@@ -2,6 +2,7 @@ using Assets.Scripts.Core;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using UnityEngine;
 
 namespace Assets.Scripts.Shared
@@ -57,26 +58,38 @@ namespace Assets.Scripts.Shared
 
         // ============================ INITIALIZE FIRST OPTIONS ===============================
 
-        // Returns the copy of list
+        // Returns the copy of origin list and changes the ref to numerics
 
-        public static List<string> InitializeFirstOptionsIfns()
+        public static List<string> InitializeFirstOptionsIfns(ref List<string> OptionsNumerics)
         {
+            OptionsNumerics.Clear();
+            OptionsNumerics.Add("");
+
             _filterIfns.AccordingOptions.Clear();
             _filterIfns.AccordingOptions.Add("");
 
-            foreach (var option in DataInputRequisites.DataIfns.Data)
+            // Numeric and non-numeric initializing
+            foreach (var data in DataInputRequisites.DataIfns.Data)
             {
-                if (option.IfnsData.Count <= 0)
+                if (data.IfnsData.Count <= 0)
                     continue;
 
                 _string.Clear();
-                _string.Append(option.IfnsData.First().Key.Substring(0, 2));
-                _string.Append(" - ").Append(option.RepublicName);
+                _string.Append(data.IfnsData.First().Key.Substring(0, 2));
+                _string.Append(" - ").Append(data.RepublicName);
 
-                _filterIfns.AccordingOptions.Add(_string.ToString());
+                OptionsNumerics.Add(_string.ToString());
+
+                // Non-numeric initializing
+                foreach(var option in data.IfnsData)
+                {
+                    _string.Clear();
+                    _string.Append(option.Key).Append(" - ").Append(option.Value);
+                    _filterIfns.AccordingOptions.Add(_string.ToString());
+                }
             }
 
-            if (_filterIfns.AccordingOptions.Count <= 1)
+            if (OptionsNumerics.Count <= 1)
                 throw new System.Exception("Tier 1 option can't be size <= 1");
 
             return _filterIfns.AccordingOptions.ToList();
@@ -126,41 +139,76 @@ namespace Assets.Scripts.Shared
         // Returns the copy of list
 
         // Original + words parser
-        public static List<string> UpdateDropdownIfns(List<string> OptionsCached, string newInput)
+        public static List<string> UpdateDropdownIfns(List<string> OptionsOrigin, ref List<string> OptionsCached, string newInput)
         {
             // newInput.Length != 0.
             int length = newInput.Length;
 
             // Check logics
-            if (IsStringNumeric(newInput) == true)
+            if (length < CharacterLimitIfns && IsStringNumeric(newInput) == true)
             {
-                return UpdateDropdownNumericsIfns(OptionsCached, newInput);
+                return UpdateDropdownNumericsIfns(ref OptionsCached, newInput);
             }
 
-            throw new System.Exception("Not realized logics");
+            /*  foreach (var ifnsDictionary in DataInputRequisites.DataIfns.Data)
+            {
+                if (ifnsDictionary.IfnsData.Count <= 0)
+                    continue;
 
-            return _filterIfns.AccordingOptions;
+                foreach (var option in ifnsDictionary.IfnsData)
+                {
+                    _string.Clear();
+                    _string.Append(option.Key).Append(" - ").Append(option.Value);
+
+                    if ()
+                }
+            }*/
+
+            List<string> currentOptions;
+            if (length > _filterIfns.PreviousInput.Length)
+                currentOptions = _filterIfns.AccordingOptions.ToList();
+            else
+                currentOptions = OptionsOrigin;
+
+            _filterIfns.AccordingOptions.Clear();
+            _filterIfns.AccordingOptions.Add("");
+
+            foreach (var option in currentOptions)
+            {
+                int index = option.IndexOf(newInput);
+                if (index == -1)
+                    continue;
+
+                StringBuilder optionBuilder = new StringBuilder(option);
+                optionBuilder.Insert(index, "<b>");
+                optionBuilder.Insert(index + 3 + newInput.Length, "</b>");
+
+                _filterIfns.AccordingOptions.Add(optionBuilder.ToString());
+            }
+
+            // return {null list for error}
+            return _filterIfns.AccordingOptions.ToList();
         }
 
         // Changes the original OptionsCached
 
         // Original algorithm
-        private static List<string> UpdateDropdownNumericsIfns(List<string> OptionsCached, string newInput)
+        private static List<string> UpdateDropdownNumericsIfns(ref List<string> OptionsCachedNumerics, string newInput)
         {
-            if (OptionsCached.Count > 1 && OptionsCached[FIRST].Length == newInput.Length
-                && OptionsCached[FIRST] == newInput)
+            if (OptionsCachedNumerics.Count > 1 && OptionsCachedNumerics[FIRST].Length == newInput.Length
+                && OptionsCachedNumerics[FIRST] == newInput)
             {
-                if (OptionsCached.Count <= 1)
+                if (OptionsCachedNumerics.Count <= 1)
                     throw new System.Exception($"{newInput.Length} tier doesn't initialized.");
 
                 // TODO: do it))
-                return OptionsCached;
+                return OptionsCachedNumerics;
             }
 
             // Update list logics
 
-            OptionsCached.Clear();
-            OptionsCached.Add("");
+            OptionsCachedNumerics.Clear();
+            OptionsCachedNumerics.Add("");
 
             bool foundMatch = false;
             foreach (var option in DataInputRequisites.DataIfns.Data)
@@ -188,7 +236,7 @@ namespace Assets.Scripts.Shared
                 {
                     _string.Append(" - ").Append(option.RepublicName);
 
-                    OptionsCached.Add(_string.ToString());
+                    OptionsCachedNumerics.Add(_string.ToString());
                     continue;
                 }
 
@@ -211,11 +259,11 @@ namespace Assets.Scripts.Shared
                     _string.Append(ifnsData.Key).Append(" - ").Append(ifnsData.Value);
 
                     // Length == [2..4]
-                    OptionsCached.Add(_string.ToString());
+                    OptionsCachedNumerics.Add(_string.ToString());
                 }
             }
 
-            return OptionsCached;
+            return OptionsCachedNumerics;
         }
 
 
@@ -225,6 +273,8 @@ namespace Assets.Scripts.Shared
 
 
         // ============================ UPDATE DROPDOWN OKTMMF ===============================
+
+        // TODO: change by the same way: params and return types
 
         public static List<string> UpdateDropdownOktmmf(List<string> optionsOrigin, string newInput)
         {
@@ -295,9 +345,13 @@ namespace Assets.Scripts.Shared
 
         public static bool IsStringNumeric(string newInput)
         {
+            // Numeric length can't be more than oktmmf.lenght
             for (int i = 0; i < newInput.Length; i++)
             {
                 if (char.IsDigit(newInput[i]) == false)
+                    return false;
+
+                if (i >= CharacterLimitOktmmf)
                     return false;
             }
 

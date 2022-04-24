@@ -58,29 +58,34 @@ namespace Assets.Scripts.Shared
                 if (OptionsCachedNumerics[0].Count <= 1)
                     throw new Exception("0 tier doesn't initialized.");
 
-                AddOptionsOptimized(0);
+                AddOptionsOptimized(OptionsCachedNumerics[0]);
                 DropdownResponse = new ParserResponse(EMPTY);
                 return DropdownResponse;
             }
 
             // Main logic parser function call.
             int index = newInput.Length;
-            // OptionsCachedNumerics[index].Clear();
-            OptionsCachedNumerics[index] = SearchbarParser.UpdateDropdownIfns(OptionsCachedNumerics[index], newInput);
+            List<string> newDropdownOptions;
+            if (index < CharacterLimit)
+                newDropdownOptions = SearchbarParser.UpdateDropdownIfns(OptionCached, ref OptionsCachedNumerics[index], newInput);
+            else
+                newDropdownOptions = SearchbarParser.UpdateDropdownIfns(OptionCached, ref OptionsCachedNumerics[0], newInput);
+
             // --------------------------------
 
-            if (OptionsCachedNumerics[index].Count > 1)
-                DropdownResponse = new ParserResponse(OK, OptionsCachedNumerics[newInput.Length][FIRST]);
+            if (newDropdownOptions.Count > 1)
+                DropdownResponse = new ParserResponse(OK, newDropdownOptions[FIRST]);
             else
                 DropdownResponse = new ParserResponse(NOTFOUND, newInput);
 
-            AddOptionsOptimized(newInput.Length);
+            AddOptionsOptimized(newDropdownOptions);
             return DropdownResponse;
         }
 
         protected override void InitializeOptionsFirst()
         {
-            OptionsCachedNumerics[0] = SearchbarParser.InitializeFirstOptionsIfns();
+            // It return copy to internal struct _ifnsParser.options. And changes by ref OptionsCachedNumerics[0].
+            OptionCached = SearchbarParser.InitializeFirstOptionsIfns(ref OptionsCachedNumerics[0]);
             UpdateDropdown("");
         }
 
@@ -143,7 +148,12 @@ namespace Assets.Scripts.Shared
                     SelectInputField(); // After the options choosing focus is lost.
                 }
             }
+            else
+            {
+                HintText.UpdateHint("");
+            }
 
+            SelectInputField();
             PreviousInput = newInput;
         }
 

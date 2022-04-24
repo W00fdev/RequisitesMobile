@@ -14,6 +14,9 @@ namespace Assets.Scripts.Shared
         [SerializeField] private int _maxAttempts = 10;
         [SerializeField] private float _attemptDelay = 2f;
 
+        // To prevent muptiple packages and re-initializing
+        private bool _hasToUpdateOktmmf = false;
+
         private BaseState _currentState;
         private List<BaseState> _allStates;
 
@@ -80,6 +83,16 @@ namespace Assets.Scripts.Shared
                     _retryConnection = null;
                 }
             }
+        }
+
+        public bool HasToUpdateOktmmf()
+        {
+            return _hasToUpdateOktmmf;
+        }
+
+        public void SetHasToUpdateOktmmf(bool enabled)
+        {
+            _hasToUpdateOktmmf = enabled;
         }
 
         private IEnumerator CheckConnection()

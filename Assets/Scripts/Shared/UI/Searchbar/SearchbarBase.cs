@@ -118,8 +118,15 @@ namespace Assets.Scripts.Shared
                 }
             }
 
-            InputField.characterValidation = TMP_InputField.CharacterValidation.Digit;
-            InputField.characterLimit = CharacterLimit;
+            //InputField.characterValidation = TMP_InputField.CharacterValidation.Regex;
+            // Sets the regex string by reflection
+/*            string regex = "[А-я]|[а-я]|[-\' ]|[0-9]";
+
+            Type inputFieldType = Type.GetType("TMPro.TMP_InputField, Unity.TextMeshPro", true, true);
+            System.Reflection.FieldInfo regexValueFieldInfo = inputFieldType.GetField("m_RegexValue", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            regexValueFieldInfo.SetValue(m_InputField, "your regex here");*/
+
+            //InputField.characterLimit = CharacterLimit;
             InputField.onFocusSelectAll = false;
             InputField.onSelect.AddListener(SelectEventInputField);
             InputField.onValueChanged.AddListener(ChangeValueEventInputField);
@@ -273,23 +280,23 @@ namespace Assets.Scripts.Shared
             Dropdown.Hide();
         }
 
-        protected virtual void AddOptionsOptimized(int index)
+        protected virtual void AddOptionsOptimized(List<string> options)
         {
             if (AreOptionsAdding == true)
                 StopCoroutine(AddOptionsBatchedCoroutine);
 
             // Dropdown.AddOptions(OptionsCached[0]);
             AreOptionsAdding = true;
-            AddOptionsBatchedCoroutine = StartCoroutine(AddOptionsBatched(index));
+            AddOptionsBatchedCoroutine = StartCoroutine(AddOptionsBatched(options));
         }
 
-        protected IEnumerator AddOptionsBatched(int index)
+        protected IEnumerator AddOptionsBatched(List<string> options)
         {
             Dropdown.ClearOptions();
-            int optionsCount = OptionsCachedNumerics[index].Count;
+            int optionsCount = options.Count;
             if (optionsCount < BatchSize)
             {
-                Dropdown.AddOptions(OptionsCachedNumerics[index]);
+                Dropdown.AddOptions(options);
                 AreOptionsAdding = false;
                 yield return null;
             }
@@ -300,7 +307,7 @@ namespace Assets.Scripts.Shared
                 for (int i = 0; i < optionsCount; i += BatchSize)
                 {
                     int range = Mathf.Min(BatchSize, optionsCount - i);
-                    Dropdown.AddOptions(OptionsCachedNumerics[index].GetRange(i, range));
+                    Dropdown.AddOptions(options.GetRange(i, range));
                     if (range == optionsCount - i)
                     {
                         lastIndex = optionsCount;
@@ -312,7 +319,7 @@ namespace Assets.Scripts.Shared
                     yield return null;
                 }
 
-                Dropdown.AddOptions(OptionsCachedNumerics[index].GetRange(lastIndex, optionsCount - lastIndex));      
+                Dropdown.AddOptions(options.GetRange(lastIndex, optionsCount - lastIndex));      
                 HideDropdown();
                 yield return null;
                 ShowDropdown();

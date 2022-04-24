@@ -67,7 +67,7 @@ namespace Assets.Scripts.Shared
                 }
 
                 Dropdown.ClearOptions();
-                AddOptionsOptimized(0);
+                AddOptionsOptimized(OptionsCachedNumerics[0]);
                 DropdownResponse = new ParserResponse(EMPTY);
                 PreviousInputDropdown = newInput;
                 SearchbarParser.SetPreviousInputOktmmf(PreviousInputDropdown);
@@ -89,7 +89,7 @@ namespace Assets.Scripts.Shared
             // Remove hard dependency with OptionsNumerics
             // Make it list<string> param
             // Delete OptionsCached and OptionsCachedNumerics[1]
-            AddOptionsOptimized(1);
+            AddOptionsOptimized(OptionsCachedNumerics[1]);
 
             PreviousInputDropdown = newInput;
             return DropdownResponse;
@@ -182,7 +182,13 @@ namespace Assets.Scripts.Shared
                 else
                     SelectInputField(); // After the options choosing focus is lost.
             }
+            else
+            {
+                HintText.UpdateHint("");
+            }
 
+            ShowDropdown();
+            SelectInputField();
             PreviousInput = newInput;
         }
 
